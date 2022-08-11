@@ -9,6 +9,7 @@
 #pragma once
 
 #include <rcpr/allocator.h>
+#include <rcpr/status.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -97,7 +98,8 @@ extern vcjson_bool* VCJSON_FALSE;
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_create(vcjson_object** obj, RCPR_SYM(allocator)* alloc);
+status FN_DECL_MUST_CHECK
+vcjson_object_create(vcjson_object** obj, RCPR_SYM(allocator)* alloc);
 
 /**
  * \brief Get the number of elements in the given object instance.
@@ -123,7 +125,8 @@ size_t vcjson_object_elements(const vcjson_object* arr);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_put(
+status FN_DECL_MUST_CHECK
+vcjson_object_put(
     vcjson_object* obj, const char* key, vcjson_value* value);
 
 /**
@@ -142,7 +145,8 @@ status vcjson_object_put(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_get(
+status FN_DECL_MUST_CHECK
+vcjson_object_get(
     vcjson_value** value, vcjson_object* obj, const char* key);
 
 /**
@@ -161,7 +165,8 @@ status vcjson_object_get(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_remove(vcjson_object* obj, const char* key);
+status FN_DECL_MUST_CHECK
+vcjson_object_remove(vcjson_object* obj, const char* key);
 
 /**
  * \brief Clear the given object of all key-value pairs.
@@ -176,7 +181,8 @@ status vcjson_object_remove(vcjson_object* obj, const char* key);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_clear(vcjson_object* obj);
+status FN_DECL_MUST_CHECK
+vcjson_object_clear(vcjson_object* obj);
 
 /**
  * \brief Create an object iterator set to the first key-value pair in this
@@ -200,7 +206,8 @@ status vcjson_object_clear(vcjson_object* obj);
  *        object instance.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_iterator_create(
+status FN_DECL_MUST_CHECK
+vcjson_object_iterator_create(
     vcjson_object_iterator** iterator, vcjson_object* obj);
 
 /**
@@ -219,7 +226,8 @@ status vcjson_object_iterator_create(
  *        end of the object instance.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_iterator_next(vcjson_object_iterator* iterator);
+status FN_DECL_MUST_CHECK
+vcjson_object_iterator_next(vcjson_object_iterator* iterator);
 
 /**
  * \brief Get the key-value pair associated with the current iterator position.
@@ -239,7 +247,8 @@ status vcjson_object_iterator_next(vcjson_object_iterator* iterator);
  *      - ERROR_VCJSON_ITERATOR_BAD if the iterator is bad.
  *      - a non-zero error code on failure.
  */
-status vcjson_object_iterator_value(
+status FN_DECL_MUST_CHECK
+vcjson_object_iterator_value(
     const char** key, vcjson_value** value, vcjson_object_iterator* iterator);
 
 /**
@@ -280,7 +289,8 @@ RCPR_SYM(resource)* vcjson_object_iterator_resource_handle(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_array_create(
+status FN_DECL_MUST_CHECK
+vcjson_array_create(
     vcjson_array** arr, RCPR_SYM(allocator)* alloc, size_t size);
 
 /**
@@ -307,7 +317,8 @@ size_t vcjson_array_size(const vcjson_array* arr);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_array_set(vcjson_array* arr, size_t offset, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_array_set(vcjson_array* arr, size_t offset, vcjson_value* value);
 
 /**
  * \brief Get the value of the \ref vcjson_array instance at the given offset.
@@ -324,7 +335,8 @@ status vcjson_array_set(vcjson_array* arr, size_t offset, vcjson_value* value);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_array_get(vcjson_value** value, vcjson_array* arr, size_t offset);
+status FN_DECL_MUST_CHECK
+vcjson_array_get(vcjson_value** value, vcjson_array* arr, size_t offset);
 
 /**
  * \brief Get the resource handle for the given \ref vcjson_array instance.
@@ -352,7 +364,8 @@ RCPR_SYM(resource)* vcjson_array_resource_handle(vcjson_array* arr);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_number_create(
+status FN_DECL_MUST_CHECK
+vcjson_number_create(
     vcjson_number** number, RCPR_SYM(allocator)* alloc, double value);
 
 /**
@@ -392,7 +405,8 @@ RCPR_SYM(resource)* vcjson_number_resource_handle(vcjson_number* number);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_string_create(
+status FN_DECL_MUST_CHECK
+vcjson_string_create(
     vcjson_string** string, RCPR_SYM(allocator)* alloc, const char* value);
 
 /**
@@ -436,7 +450,8 @@ RCPR_SYM(resource)* vcjson_string_resource_handle(vcjson_string* string);
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_object(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_object(
     vcjson_value** value, RCPR_SYM(allocator)* alloc, vcjson_object* object);
 
 /**
@@ -458,7 +473,8 @@ status vcjson_value_create_from_object(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_array(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_array(
     vcjson_value** value, RCPR_SYM(allocator)* alloc, vcjson_array* arr);
 
 /**
@@ -480,7 +496,8 @@ status vcjson_value_create_from_array(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_number(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_number(
     vcjson_value** value, RCPR_SYM(allocator)* alloc, vcjson_number* number);
 
 /**
@@ -502,7 +519,8 @@ status vcjson_value_create_from_number(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_string(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_string(
     vcjson_value** value, RCPR_SYM(allocator)* alloc, vcjson_string* string);
 
 /**
@@ -520,7 +538,8 @@ status vcjson_value_create_from_string(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_null(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_null(
     vcjson_value** value, RCPR_SYM(allocator)* alloc);
 
 /**
@@ -538,7 +557,8 @@ status vcjson_value_create_from_null(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_true(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_true(
     vcjson_value** value, RCPR_SYM(allocator)* alloc);
 
 /**
@@ -556,7 +576,8 @@ status vcjson_value_create_from_true(
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_create_from_false(
+status FN_DECL_MUST_CHECK
+vcjson_value_create_from_false(
     vcjson_value** value, RCPR_SYM(allocator)* alloc);
 
 /**
@@ -586,7 +607,8 @@ int vcjson_value_type(const vcjson_value* value);
  *      - ERROR_VCJSON_INVALID_GET if the type of this value is not an object.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_get_object(vcjson_object** object, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_value_get_object(vcjson_object** object, vcjson_value* value);
 
 /**
  * \brief Attempt to get the \ref vcjson_array value of this \ref vcjson_value
@@ -606,7 +628,8 @@ status vcjson_value_get_object(vcjson_object** object, vcjson_value* value);
  *      - ERROR_VCJSON_INVALID_GET if the type of this value is not an array.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_get_array(vcjson_array** arr, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_value_get_array(vcjson_array** arr, vcjson_value* value);
 
 /**
  * \brief Attempt to get the \ref vcjson_number value of this \ref vcjson_value
@@ -626,7 +649,8 @@ status vcjson_value_get_array(vcjson_array** arr, vcjson_value* value);
  *      - ERROR_VCJSON_INVALID_GET if the type of this value is not a number.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_get_number(vcjson_number** number, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_value_get_number(vcjson_number** number, vcjson_value* value);
 
 /**
  * \brief Attempt to get the \ref vcjson_string value of this \ref vcjson_value
@@ -646,7 +670,8 @@ status vcjson_value_get_number(vcjson_number** number, vcjson_value* value);
  *      - ERROR_VCJSON_INVALID_GET if the type of this value is not a string.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_get_string(vcjson_string** string, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_value_get_string(vcjson_string** string, vcjson_value* value);
 
 /**
  * \brief Attempt to get the \ref vcjson_bool value of this \ref vcjson_value
@@ -666,7 +691,8 @@ status vcjson_value_get_string(vcjson_string** string, vcjson_value* value);
  *      - ERROR_VCJSON_INVALID_GET if the type of this value is not a bool.
  *      - a non-zero error code on failure.
  */
-status vcjson_value_get_bool(vcjson_bool** boolean, vcjson_value* value);
+status FN_DECL_MUST_CHECK
+vcjson_value_get_bool(vcjson_bool** boolean, vcjson_value* value);
 
 /**
  * \brief Get the resource handle for the given \ref vcjson_value instance.
