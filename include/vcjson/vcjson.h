@@ -83,6 +83,9 @@ extern const vcjson_bool* VCJSON_TRUE;
  */
 extern const vcjson_bool* VCJSON_FALSE;
 
+/* error codes. */
+#define ERROR_VCJSON_INVALID_GET        0x6300
+
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.
  *
