@@ -71,17 +71,17 @@ typedef struct vcjson_value vcjson_value;
 /**
  * \brief the JSON null singleton for this library.
  */
-extern vcjson_null* VCJSON_NULL;
+extern const vcjson_null* VCJSON_NULL;
 
 /**
  * \brief the JSON true singleton for this library.
  */
-extern vcjson_bool* VCJSON_TRUE;
+extern const vcjson_bool* VCJSON_TRUE;
 
 /**
  * \brief the JSON false singleton for this library.
  */
-extern vcjson_bool* VCJSON_FALSE;
+extern const vcjson_bool* VCJSON_FALSE;
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.

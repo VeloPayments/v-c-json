@@ -41,6 +41,18 @@ struct vcjson_bool
     bool value;
 };
 
+struct vcjson_value
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    int type;
+    void* value;
+};
+
+extern vcjson_null VCJSON_NULL_IMPL;
+extern vcjson_bool VCJSON_BOOL_TRUE_IMPL;
+extern vcjson_bool VCJSON_BOOL_FALSE_IMPL;
+
 /**
  * \brief Release a \ref vcjson_number resource.
  *
@@ -72,6 +84,14 @@ vcjson_null_resource_release(RCPR_SYM(resource)* r);
  */
 status FN_DECL_MUST_CHECK
 vcjson_bool_resource_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Release a \ref vcjson_value singleton resource.
+ *
+ * \param r             The resource to release.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_value_singleton_resource_release(RCPR_SYM(resource)* r);
 
 #if defined(__cplusplus)
 }
