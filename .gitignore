@@ -1,0 +1,10 @@
+build
+
+# don't commit source for subprojects
+subprojects/minunit
+subprojects/rcpr
+subprojects/vcmodel
+
+#cscope / ctags artifacts
+cscope.*
+tags
