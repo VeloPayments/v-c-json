@@ -10,8 +10,8 @@
 
 #include "vcjson_internal.h"
 
-static vcjson_null VCJSON_NULL_IMPL = {
+vcjson_null VCJSON_NULL_IMPL = {
     .hdr = { .release = &vcjson_null_resource_release
 } };
 
-vcjson_null* VCJSON_NULL = &VCJSON_NULL_IMPL;
+const vcjson_null* VCJSON_NULL = &VCJSON_NULL_IMPL;
