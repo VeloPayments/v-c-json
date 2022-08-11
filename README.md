@@ -5,17 +5,17 @@ This is a simple JSON parsing library written in model-checked C. This library
 parses a JSON buffer into a tree of data.
 
 The following JSON types are supported. They are wrapped in the given types. A
-generic type of `vcjson_val` is used to represent any type. This `vcjson_val`
-type can be decoded into a concrete type.
+generic type of `vcjson_value` is used to represent any type. This
+`vcjson_value` type can be decoded into a concrete type.
 
-* Number: Represented as the C `double` type, wrapped in the `vcjson_double`
+* Number: Represented as the C `double` type, wrapped in the `vcjson_number`
   type.
 * String: Represented as a C character string, wrapped in the `vcjson_string`
   type.
 * Boolean: Represented as a C `bool` type, wrapped in the `vcjson_bool` type.
-* Array: Represented as a C array of `vcjson_val` values.
+* Array: Represented as a C array of `vcjson_value` values.
 * Object: Represented as a `vcjson_object` type, which is a dictionary mapping a
-  string key to a `vcjson_val` value.
+  string key to a `vcjson_value` value.
 * Null: Represented as a `vcjson_null` type.
 
 Parsing
@@ -28,7 +28,21 @@ buffer and size arguments required for the former function.
 Emitting
 --------
 
-A JSON string can be emitted from a `vcjson_val` using the `vcjson_emit`
+A JSON string can be emitted from a `vcjson_value` using the `vcjson_emit`
 function. This function creates a string using the given allocator instance,
 which can then be output. The pretty-print flag will create a human-readable
 JSON string when set to `true` and a compact string when set to `false`.
+
+Quirks
+------
+
+This implementation is more strict than the JSON standard, which means that
+there may be some semantic differences between documents parsed and emitted by
+this library with respect to the standard. In particular, the JSON standard has
+a very relaxed definition for objects. An object with the same key repeated
+multiple times is valid. In this library, such an object is NOT valid and will
+result in a parse error when parsed. Likewise, when an object instance is
+emitted, key-value pairs are emitted in lexicographic order and not in the order
+in which they were parsed. A future version of this library may provide parse
+options that can relax how JSON strings are parsed in order to relax this
+restriction.
