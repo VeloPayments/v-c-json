@@ -30,6 +30,11 @@ struct vcjson_string
     size_t length;
 };
 
+struct vcjson_null
+{
+    RCPR_SYM(resource) hdr;
+};
+
 /**
  * \brief Release a \ref vcjson_number resource.
  *
@@ -45,6 +50,14 @@ vcjson_number_resource_release(RCPR_SYM(resource)* r);
  */
 status FN_DECL_MUST_CHECK
 vcjson_string_resource_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Release a \ref vcjson_null resource.
+ *
+ * \param r             The resource to release.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_null_resource_release(RCPR_SYM(resource)* r);
 
 #if defined(__cplusplus)
 }
