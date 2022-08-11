@@ -30,7 +30,7 @@ TEST(vcjson_number_create_basics)
     TEST_ASSERT(
         STATUS_SUCCESS == vcjson_number_create(&number, alloc, EXPECTED_VALUE));
 
-    /* the number value is equal to EX`EXPECTED_VALUE. */
+    /* the number value is equal to EXPECTED_VALUE. */
     TEST_EXPECT(EXPECTED_VALUE == vcjson_number_value(number));
 
     /* clean up. */
