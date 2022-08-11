@@ -64,3 +64,33 @@ TEST(value_true_basics)
     resource_release(vcjson_value_resource_handle(value)); /* does nothing. */
     resource_release(allocator_resource_handle(alloc));
 }
+
+/**
+ * \brief Test for false related values.
+ */
+TEST(value_false_basics)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_bool* boolval = nullptr;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create a true value. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_value_create_from_false(&value, alloc));
+
+    /* the type of this value is VCJSON_VALUE_TYPE_BOOL. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(value));
+
+    /* get the bool value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_bool(&boolval, value));
+
+    /* this bool value is FALSE. */
+    TEST_EXPECT(VCJSON_FALSE == boolval);
+
+    /* clean up. */
+    resource_release(vcjson_value_resource_handle(value)); /* does nothing. */
+    resource_release(allocator_resource_handle(alloc));
+}
