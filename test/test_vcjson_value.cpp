@@ -8,6 +8,9 @@
 
 #include <minunit/minunit.h>
 #include <vcjson/vcjson.h>
+#include <cstring>
+
+using namespace std;
 
 RCPR_IMPORT_allocator;
 RCPR_IMPORT_resource;
@@ -129,6 +132,46 @@ TEST(value_number_basics)
 
     /* this number value is our expected value. */
     TEST_EXPECT(EXPECTED_VALUE == vcjson_number_value(numberval));
+
+    /* clean up. */
+    resource_release(vcjson_value_resource_handle(value));
+    resource_release(allocator_resource_handle(alloc));
+}
+
+/**
+ * \brief Test for string related values.
+ */
+TEST(value_string_basics)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_string* stringval = nullptr;
+    const char* EXPECTED_VALUE = "This is a test.";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create a string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_string_create(&stringval, alloc, EXPECTED_VALUE));
+
+    /* create a value from this string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_value_create_from_string(&value, alloc, stringval));
+
+    /* reset stringval value since it is now owned by the value. */
+    stringval = nullptr;
+
+    /* the type of this value is VCJSON_VALUE_TYPE_STRING. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(value));
+
+    /* get the string value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringval, value));
+
+    /* this string value is our expected value. */
+    TEST_EXPECT(0 == strcmp(EXPECTED_VALUE, vcjson_string_value(stringval)));
 
     /* clean up. */
     resource_release(vcjson_value_resource_handle(value));
