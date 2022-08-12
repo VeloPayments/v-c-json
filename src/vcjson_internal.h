@@ -156,6 +156,14 @@ vcjson_value_with_resource_release(RCPR_SYM(resource)* r);
 status FN_DECL_MUST_CHECK
 vcjson_object_resource_release(RCPR_SYM(resource)* r);
 
+/**
+ * \brief Release a \ref vcjson_object_element.
+ *
+ * \param r             The resource to release.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_object_element_resource_release(RCPR_SYM(resource)* r);
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */

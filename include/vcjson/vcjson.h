@@ -85,6 +85,7 @@ extern const vcjson_bool* VCJSON_FALSE;
 
 /* error codes. */
 #define ERROR_VCJSON_INVALID_GET        0x6300
+#define ERROR_VCJSON_KEY_NOT_FOUND      0x6301
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.
@@ -166,6 +167,7 @@ vcjson_object_put(
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
+ *      - ERROR_VCJSON_KEY_NOT_FOUND if the key is not associated with a value.
  *      - a non-zero error code on failure.
  */
 status FN_DECL_MUST_CHECK
