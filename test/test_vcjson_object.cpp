@@ -96,3 +96,63 @@ TEST(vcjson_object_get_put)
         STATUS_SUCCESS
             == resource_release(allocator_resource_handle(alloc)));
 }
+
+/**
+ * Verify that we can replace an object.
+ */
+TEST(vcjson_object_get_put_replace)
+{
+    allocator* alloc = nullptr;
+    vcjson_object* object = nullptr;
+    vcjson_value* val = nullptr;
+    vcjson_bool* boolval = nullptr;
+    const char* EXPECTED_KEY = "test key";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create an object instance. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_create(&object, alloc));
+
+    /* create a true value. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_value_create_from_true(&val, alloc));
+
+    /* put the given value using the given key. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+
+    /* the value is now owned by the object. */
+    val = nullptr;
+
+    /* create a false value. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_value_create_from_false(&val, alloc));
+
+    /* put the given value using the given key. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+
+    /* the value is now owned by the object. */
+    val = nullptr;
+
+    /* the get should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_get(&val, object, EXPECTED_KEY));
+
+    /* get the boolean value. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_value_get_bool(&boolval, val));
+
+    /* this value is FALSE. */
+    TEST_EXPECT(VCJSON_FALSE == boolval);
+
+    /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_object_resource_handle(object)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(allocator_resource_handle(alloc)));
+}
