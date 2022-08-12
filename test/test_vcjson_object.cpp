@@ -261,3 +261,95 @@ TEST(vcjson_object_clear)
         STATUS_SUCCESS
             == resource_release(allocator_resource_handle(alloc)));
 }
+
+/**
+ * Verify that we can iterate over an object.
+ */
+TEST(vcjson_object_iterate)
+{
+    allocator* alloc = nullptr;
+    vcjson_object* object = nullptr;
+    vcjson_value* val = nullptr;
+    vcjson_number* number = nullptr;
+    vcjson_object_iterator* iter = nullptr;
+    const char* ikey = nullptr;
+    char key[20];
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create an object instance. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_create(&object, alloc));
+
+    /* create and put key-value pairs. */
+    for (int i = 0; i < 10; ++i)
+    {
+        /* create the key. */
+        snprintf(key, sizeof(key), "%d", i);
+
+        /* create a number. */
+        TEST_ASSERT(STATUS_SUCCESS == vcjson_number_create(&number, alloc, i));
+
+        /* wrap the number in a value. */
+        TEST_ASSERT(
+            STATUS_SUCCESS
+                == vcjson_value_create_from_number(&val, alloc, number));
+
+        /* put this value in the object. */
+        TEST_ASSERT(STATUS_SUCCESS == vcjson_object_put(object, key, val));
+    }
+
+    /* create the iterator. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_create(&iter, object));
+
+    /* verify that we can iterate over all elements. */
+    for (int i = 0; i < 10; ++i)
+    {
+        /* create the key. */
+        snprintf(key, sizeof(key), "%d", i);
+
+        /* key the key-value pair from the iterator. */
+        TEST_ASSERT(
+            STATUS_SUCCESS == vcjson_object_iterator_value(&ikey, &val, iter));
+
+        /* the keys should match. */
+        TEST_EXPECT(0 == strcmp(key, ikey));
+
+        /* the value type should be a number. */
+        TEST_ASSERT(VCJSON_VALUE_TYPE_NUMBER == vcjson_value_type(val));
+
+        /* we can get the number value. */
+        TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_number(&number, val));
+
+        /* the number value should match. */
+        TEST_EXPECT((double)i == vcjson_number_value(number));
+
+        /* get the next value. */
+        if (i < 9)
+        {
+            TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_next(iter));
+        }
+        else
+        {
+            TEST_ASSERT(
+                ERROR_VCJSON_ITERATOR_END == vcjson_object_iterator_next(iter));
+        }
+    }
+
+    /* getting a value from the spent iterator should return an error. */
+    TEST_EXPECT(
+        ERROR_VCJSON_ITERATOR_BAD
+            == vcjson_object_iterator_value(&ikey, &val, iter));
+
+    /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_object_iterator_resource_handle(iter)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_object_resource_handle(object)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(allocator_resource_handle(alloc)));
+}

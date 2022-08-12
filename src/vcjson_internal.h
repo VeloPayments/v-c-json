@@ -70,6 +70,15 @@ struct vcjson_object_element
     vcjson_value* value;
 };
 
+struct vcjson_object_iterator
+{
+    RCPR_SYM(resource) hdr;
+    RCPR_SYM(allocator)* alloc;
+    RCPR_SYM(rbtree)* tree;
+    RCPR_SYM(rbtree_node)* nil;
+    RCPR_SYM(rbtree_node)* curr;
+};
+
 extern vcjson_null VCJSON_NULL_IMPL;
 extern vcjson_bool VCJSON_BOOL_TRUE_IMPL;
 extern vcjson_bool VCJSON_BOOL_FALSE_IMPL;
@@ -163,6 +172,14 @@ vcjson_object_resource_release(RCPR_SYM(resource)* r);
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_element_resource_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Release a \ref vcjson_object_iterator.
+ *
+ * \param r             The resource to release.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_object_iterator_resource_release(RCPR_SYM(resource)* r);
 
 #if defined(__cplusplus)
 }

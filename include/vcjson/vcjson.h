@@ -86,6 +86,8 @@ extern const vcjson_bool* VCJSON_FALSE;
 /* error codes. */
 #define ERROR_VCJSON_INVALID_GET        0x6300
 #define ERROR_VCJSON_KEY_NOT_FOUND      0x6301
+#define ERROR_VCJSON_ITERATOR_END       0x6302
+#define ERROR_VCJSON_ITERATOR_BAD       0x6303
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.
@@ -294,7 +296,7 @@ RCPR_SYM(resource)* vcjson_object_resource_handle(vcjson_object* obj);
  * \returns the resource handle for this instance.
  */
 RCPR_SYM(resource)* vcjson_object_iterator_resource_handle(
-    vcjson_object_iterator* obj);
+    vcjson_object_iterator* iterator);
 
 /**
  * \brief Create a \ref vcjson_array using the given allocator and size.
