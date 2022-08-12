@@ -93,6 +93,14 @@ vcjson_bool_resource_release(RCPR_SYM(resource)* r);
 status FN_DECL_MUST_CHECK
 vcjson_value_singleton_resource_release(RCPR_SYM(resource)* r);
 
+/**
+ * \brief Release a \ref vcjson_value with a resource.
+ *
+ * \param r             The resource to release.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_value_with_resource_release(RCPR_SYM(resource)* r);
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */
