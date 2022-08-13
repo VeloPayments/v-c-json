@@ -58,3 +58,44 @@ TEST(vcjson_array_create_basics)
         STATUS_SUCCESS
             == resource_release(allocator_resource_handle(alloc)));
 }
+
+/**
+ * Verify that we can set an array value.
+ */
+TEST(vcjson_array_set)
+{
+    allocator* alloc = nullptr;
+    vcjson_array* array = nullptr;
+    vcjson_value* value = nullptr;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create an array instance. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_array_create(&array, alloc, 1));
+
+    /* create a true value. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_value_create_from_true(&value, alloc));
+
+    /* set the 0th element to true. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_set(array, 0, value));
+
+    /* the type of the 0th element is bool. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_get(&value, array, 0));
+    TEST_EXPECT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(value));
+
+    /* attempting to set the 1st elemnt results in an out of bounds error. */
+    TEST_EXPECT(
+        ERROR_VCJSON_ARRAY_INDEX_OUT_OF_BOUNDS
+            == vcjson_array_set(array, 1, value));
+
+    /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_array_resource_handle(array)));
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(allocator_resource_handle(alloc)));
+}
