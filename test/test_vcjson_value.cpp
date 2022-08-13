@@ -177,3 +177,39 @@ TEST(value_string_basics)
     resource_release(vcjson_value_resource_handle(value));
     resource_release(allocator_resource_handle(alloc));
 }
+
+/**
+ * \brief Test for object related values.
+ */
+TEST(value_object_basics)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_object* objectval = nullptr;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create an object. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_object_create(&objectval, alloc));
+
+    /* create a value from this object. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_value_create_from_object(&value, alloc, objectval));
+
+    /* reset object value since it is now owned by the value. */
+    objectval = nullptr;
+
+    /* the type of this value is VCJSON_VALUE_TYPE_OBJECT. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_OBJECT == vcjson_value_type(value));
+
+    /* get the object value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_object(&objectval, value));
+
+    /* clean up. */
+    resource_release(vcjson_value_resource_handle(value));
+    resource_release(allocator_resource_handle(alloc));
+}
