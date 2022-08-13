@@ -327,9 +327,7 @@ vcjson_array_create(
  * \note On success, this function creates a  \ref vcjson_array instance. This
  * is a resource that is owned by the caller. When no longer needed, this
  * resource must be released by calling \ref resource_release on its resource
- * handle. By default, all values in this array will be initialized to \ref
- * VCJSON_NULL. The caller should use \ref vcjson_array_set and \ref
- * vcjson_array_get to change and get values in this array, respectfully.
+ * handle.
  *
  * \param arr           Pointer to the array pointer to hold this value.
  * \param alloc         The allocator to use for this operation.
