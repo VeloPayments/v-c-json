@@ -213,3 +213,39 @@ TEST(value_object_basics)
     resource_release(vcjson_value_resource_handle(value));
     resource_release(allocator_resource_handle(alloc));
 }
+
+/**
+ * \brief Test for array related values.
+ */
+TEST(value_array_basics)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_array* arrayval = nullptr;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* create an array. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_array_create(&arrayval, alloc, 3));
+
+    /* create a value from this array. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_value_create_from_array(&value, alloc, arrayval));
+
+    /* reset array value since it is now owned by the value. */
+    arrayval = nullptr;
+
+    /* the type of this value is VCJSON_VALUE_TYPE_ARRAY. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_ARRAY == vcjson_value_type(value));
+
+    /* get the array value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_array(&arrayval, value));
+
+    /* clean up. */
+    resource_release(vcjson_value_resource_handle(value));
+    resource_release(allocator_resource_handle(alloc));
+}
