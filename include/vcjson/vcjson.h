@@ -84,11 +84,13 @@ extern const vcjson_bool* VCJSON_TRUE;
 extern const vcjson_bool* VCJSON_FALSE;
 
 /* error codes. */
-#define ERROR_VCJSON_INVALID_GET                        0x6300
-#define ERROR_VCJSON_KEY_NOT_FOUND                      0x6301
-#define ERROR_VCJSON_ITERATOR_END                       0x6302
-#define ERROR_VCJSON_ITERATOR_BAD                       0x6303
-#define ERROR_VCJSON_ARRAY_INDEX_OUT_OF_BOUNDS          0x6304
+#define ERROR_VCJSON_INVALID_GET                                        0x6300
+#define ERROR_VCJSON_KEY_NOT_FOUND                                      0x6301
+#define ERROR_VCJSON_ITERATOR_END                                       0x6302
+#define ERROR_VCJSON_ITERATOR_BAD                                       0x6303
+#define ERROR_VCJSON_ARRAY_INDEX_OUT_OF_BOUNDS                          0x6304
+#define ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44         0x6380
+#define ERROR_VCJSON_SCAN                                               0x6381
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.

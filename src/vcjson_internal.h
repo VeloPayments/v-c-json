@@ -91,6 +91,67 @@ extern vcjson_null VCJSON_NULL_IMPL;
 extern vcjson_bool VCJSON_BOOL_TRUE_IMPL;
 extern vcjson_bool VCJSON_BOOL_FALSE_IMPL;
 
+/* lexer character constants. */
+#define VCJSON_LEXER_PRIM_COLON                                              1
+#define VCJSON_LEXER_PRIM_COMMA                                              2
+#define VCJSON_LEXER_PRIM_DIGIT_0                                            3
+#define VCJSON_LEXER_PRIM_DIGIT_1                                            4
+#define VCJSON_LEXER_PRIM_DIGIT_2                                            5
+#define VCJSON_LEXER_PRIM_DIGIT_3                                            6
+#define VCJSON_LEXER_PRIM_DIGIT_4                                            7
+#define VCJSON_LEXER_PRIM_DIGIT_5                                            8
+#define VCJSON_LEXER_PRIM_DIGIT_6                                            9
+#define VCJSON_LEXER_PRIM_DIGIT_7                                           10
+#define VCJSON_LEXER_PRIM_DIGIT_8                                           11
+#define VCJSON_LEXER_PRIM_DIGIT_9                                           12
+#define VCJSON_LEXER_PRIM_DOT                                               13
+#define VCJSON_LEXER_PRIM_HEX_a                                             14
+#define VCJSON_LEXER_PRIM_HEX_A                                             15
+#define VCJSON_LEXER_PRIM_HEX_b                                             16
+#define VCJSON_LEXER_PRIM_HEX_B                                             17
+#define VCJSON_LEXER_PRIM_HEX_c                                             18
+#define VCJSON_LEXER_PRIM_HEX_C                                             19
+#define VCJSON_LEXER_PRIM_HEX_d                                             20
+#define VCJSON_LEXER_PRIM_HEX_D                                             21
+#define VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e                                 22
+#define VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E                                 23
+#define VCJSON_LEXER_PRIM_HEX_f                                             24
+#define VCJSON_LEXER_PRIM_HEX_F                                             25
+#define VCJSON_LEXER_PRIM_LEFT_BRACE                                        26
+#define VCJSON_LEXER_PRIM_LEFT_BRACKET                                      27
+#define VCJSON_LEXER_PRIM_MINUS                                             28
+#define VCJSON_LEXER_PRIM_PLUS                                              29
+#define VCJSON_LEXER_PRIM_QUOTE                                             30
+#define VCJSON_LEXER_PRIM_RIGHT_BRACE                                       31
+#define VCJSON_LEXER_PRIM_RIGHT_BRACKET                                     32
+
+/* mid-level primitives. */
+#define VCJSON_LEXER_PRIM_LL_U8_7BIT                                      1000
+#define VCJSON_LEXER_PRIM_LL_U8_2BYTE_START                               1001
+#define VCJSON_LEXER_PRIM_LL_U8_3BYTE_START                               1002
+#define VCJSON_LEXER_PRIM_LL_U8_4BYTE_START                               1003
+#define VCJSON_LEXER_PRIM_LL_U8_CONTINUATION                              1004
+#define VCJSON_LEXER_PRIM_LL_WHITESPACE                                   1005
+#define VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL                               1006
+#define VCJSON_LEXER_PRIM_LL_WS_CONTROL                                   1007
+
+/* special EOF symbol. */
+#define VCJSON_LEXER_SYMBOL_SPECIAL_EOF                                     -1
+
+/* internal error symbol. */
+#define VCJSON_LEXER_SYMBOL_INTERNAL_ERROR                                  -2
+
+/* lower level symbols. */
+#define VCJSON_LEXER_SYMBOL_LL_CODEPOINT                                  2000
+#define VCJSON_LEXER_SYMBOL_LL_ESCAPE                                     2001
+
+/* higher level symbols. */
+#define VCJSON_LEXER_SYMBOL_FALSE                                         3000
+#define VCJSON_LEXER_SYMBOL_NULL                                          3001
+#define VCJSON_LEXER_SYMBOL_NUMBER                                        3002
+#define VCJSON_LEXER_SYMBOL_STRING                                        3003
+#define VCJSON_LEXER_SYMBOL_TRUE                                          3004
+
 /**
  * \brief Comparison function for an object elements tree.
  *
@@ -196,6 +257,26 @@ vcjson_object_iterator_resource_release(RCPR_SYM(resource)* r);
  */
 status FN_DECL_MUST_CHECK
 vcjson_array_resource_release(RCPR_SYM(resource)* r);
+
+/**
+ * \brief Attempt to scan a buffer for the next primitive symbol.
+ *
+ * \note This parse function sets a primitive as well as the buffer position.
+ *
+ * \param prim          Pointer to the primitive value to set.
+ * \param position      Pointer to be set with the position of this primitive.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_scan_primitive(
+    int* prim, size_t* position, const char* input, size_t size,
+    size_t* offset);
 
 #if defined(__cplusplus)
 }
