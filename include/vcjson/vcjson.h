@@ -91,6 +91,16 @@ extern const vcjson_bool* VCJSON_FALSE;
 #define ERROR_VCJSON_ARRAY_INDEX_OUT_OF_BOUNDS                          0x6304
 #define ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44         0x6380
 #define ERROR_VCJSON_SCAN                                               0x6381
+#define ERROR_VCJSON_SCAN_53098ec5_2c31_46f2_8b6c_17c0674708b5          0x6382
+#define ERROR_VCJSON_SCAN_40221afc_d49e_404e_8b18_1be7e48a2ecf          0x6383
+#define ERROR_VCJSON_SCAN_8a7564a9_b682_4ea0_88bc_629395331c5f          0x6384
+#define ERROR_VCJSON_SCAN_3371878e_c9c8_44b8_be57_60d9ace6bd4f          0x6385
+#define ERROR_VCJSON_SCAN_696f7da7_6349_4356_827b_01fba3599d4c          0x6386
+#define ERROR_VCJSON_SCAN_f44c9426_32bc_4191_9e80_a508171a6d41          0x6387
+#define ERROR_VCJSON_SCAN_d64622e3_3077_46e2_84a4_d21b9a6dc02f          0x6388
+#define ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8          0x6389
+#define ERROR_VCJSON_SCAN_dbf3f552_c055_4616_96bf_c48f17893162          0x638a
+#define ERROR_VCJSON_SCAN_3673de25_4603_4492_a25a_31752e9395fc          0x638b
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.
