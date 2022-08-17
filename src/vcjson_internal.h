@@ -278,6 +278,28 @@ vcjson_scan_primitive(
     int* prim, size_t* position, const char* input, size_t size,
     size_t* offset);
 
+/**
+ * \brief Attempt to scan a buffer for the next symbol.
+ *
+ * \note This parse function sets a primitive as well as the buffer position.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_scan_symbol(
+    int* prim, size_t* position, const char* input, size_t size,
+    size_t* offset);
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */
