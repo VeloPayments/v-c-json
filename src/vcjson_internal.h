@@ -297,8 +297,8 @@ vcjson_scan_primitive(
  */
 status FN_DECL_MUST_CHECK
 vcjson_scan_symbol(
-    int* prim, size_t* position, const char* input, size_t size,
-    size_t* offset);
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
 
 #if defined(__cplusplus)
 }
