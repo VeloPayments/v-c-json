@@ -122,15 +122,17 @@ extern vcjson_bool VCJSON_BOOL_FALSE_IMPL;
 #define VCJSON_LEXER_PRIM_HEX_F                                             27
 #define VCJSON_LEXER_PRIM_LEFT_BRACE                                        28
 #define VCJSON_LEXER_PRIM_LEFT_BRACKET                                      29
-#define VCJSON_LEXER_PRIM_LETTER_n                                          30
-#define VCJSON_LEXER_PRIM_LETTER_r                                          31
-#define VCJSON_LEXER_PRIM_LETTER_t                                          32
-#define VCJSON_LEXER_PRIM_LETTER_u                                          33
-#define VCJSON_LEXER_PRIM_MINUS                                             34
-#define VCJSON_LEXER_PRIM_PLUS                                              35
-#define VCJSON_LEXER_PRIM_QUOTE                                             36
-#define VCJSON_LEXER_PRIM_RIGHT_BRACE                                       37
-#define VCJSON_LEXER_PRIM_RIGHT_BRACKET                                     38
+#define VCJSON_LEXER_PRIM_LETTER_l                                          30
+#define VCJSON_LEXER_PRIM_LETTER_n                                          31
+#define VCJSON_LEXER_PRIM_LETTER_r                                          32
+#define VCJSON_LEXER_PRIM_LETTER_s                                          33
+#define VCJSON_LEXER_PRIM_LETTER_t                                          34
+#define VCJSON_LEXER_PRIM_LETTER_u                                          35
+#define VCJSON_LEXER_PRIM_MINUS                                             36
+#define VCJSON_LEXER_PRIM_PLUS                                              37
+#define VCJSON_LEXER_PRIM_QUOTE                                             38
+#define VCJSON_LEXER_PRIM_RIGHT_BRACE                                       39
+#define VCJSON_LEXER_PRIM_RIGHT_BRACKET                                     40
 
 /* mid-level primitives. */
 #define VCJSON_LEXER_PRIM_LL_U8_7BIT                                      1000

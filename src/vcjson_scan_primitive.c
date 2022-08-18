@@ -78,8 +78,10 @@ vcjson_scan_primitive(
         case 'E': *prim = VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E;          break;
         case 'f': *prim = VCJSON_LEXER_PRIM_HEX_f;                      break;
         case 'F': *prim = VCJSON_LEXER_PRIM_HEX_F;                      break;
+        case 'l': *prim = VCJSON_LEXER_PRIM_LETTER_l;                   break;
         case 'n': *prim = VCJSON_LEXER_PRIM_LETTER_n;                   break;
         case 'r': *prim = VCJSON_LEXER_PRIM_LETTER_r;                   break;
+        case 's': *prim = VCJSON_LEXER_PRIM_LETTER_s;                   break;
         case 't': *prim = VCJSON_LEXER_PRIM_LETTER_t;                   break;
         case 'u': *prim = VCJSON_LEXER_PRIM_LETTER_u;                   break;
         case '{': *prim = VCJSON_LEXER_PRIM_LEFT_BRACE;                 break;

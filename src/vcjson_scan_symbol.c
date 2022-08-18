@@ -23,6 +23,10 @@ vcjson_scan_true(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
 static status 
+vcjson_scan_false(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
 vcjson_scan_check_u8_2byte_seq(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
@@ -48,6 +52,9 @@ static status vcjson_u8_decode_3byte(
     uint32_t* codepoint, char byte1, char byte2, char byte3);
 static status vcjson_u8_decode_4byte(
     uint32_t* codepoint, char byte1, char byte2, char byte3, char byte4);
+static status
+vcjson_peek_termination_character(
+    const char* input, size_t size, size_t* offset);
 
 /**
  * \brief Attempt to scan a buffer for the next symbol.
@@ -112,6 +119,13 @@ vcjson_scan_symbol(
         case VCJSON_LEXER_PRIM_LETTER_t:
             retval =
                 vcjson_scan_true(
+                    symbol, startpos, endpos, input, size, offset);
+            goto done;
+
+        /* handle a possible false. */
+        case VCJSON_LEXER_PRIM_HEX_f:
+            retval =
+                vcjson_scan_false(
                     symbol, startpos, endpos, input, size, offset);
             goto done;
 
@@ -872,7 +886,143 @@ vcjson_scan_true(
         return retval;
     }
 
-    /* verify that this next character is a valid non-identifier. */
+    /* make sure that this token has terminated. */
+    retval = vcjson_peek_termination_character(input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        *endpos += 1;
+        *startpos = *endpos;
+        return retval;
+    }
+
+    /* success. */
+    *symbol = VCJSON_LEXER_SYMBOL_TRUE;
+    return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Attempt to scan a buffer for false.
+ *
+ * \note This scanner assumes that the first letter has already been consumed,
+ * and that both offset and startpos have been update to reflect this.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+vcjson_scan_false(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* attempt to read the 'a'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 'a'. */
+    if (VCJSON_LEXER_PRIM_HEX_a != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_9b5a8590_05d8_4c88_a45a_48b4ebf1ce3c;
+    }
+
+    /* attempt to read the 'l'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 'l'. */
+    if (VCJSON_LEXER_PRIM_LETTER_l != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_19478855_7462_4d89_a9c9_ff500d4328c2;
+    }
+
+    /* attempt to read the 's'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 's'. */
+    if (VCJSON_LEXER_PRIM_LETTER_s != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_2783f9f0_77a0_4b4c_b561_8dc932f89ea3;
+    }
+
+    /* attempt to read the 'e'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 'e'. */
+    if (VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_83ad3fa4_4479_4fc0_9f28_912c2c619473;
+    }
+
+    /* make sure that this token has terminated. */
+    retval = vcjson_peek_termination_character(input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        *endpos += 1;
+        *startpos = *endpos;
+        return retval;
+    }
+
+    /* success. */
+    *symbol = VCJSON_LEXER_SYMBOL_FALSE;
+    return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Peek for a termination character.
+ *
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+vcjson_peek_termination_character(
+    const char* input, size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+    size_t position;
+
+    /* look ahead to the next character. */
+    retval = vcjson_scan_primitive(&prim, &position, input, size, offset, true);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this next character is a token terminator. */
     switch (prim)
     {
         case VCJSON_LEXER_PRIM_COMMA:
@@ -882,12 +1032,9 @@ vcjson_scan_true(
         case VCJSON_LEXER_PRIM_LL_WHITESPACE:
         case VCJSON_LEXER_SYMBOL_SPECIAL_EOF:
             /* success. */
-            *symbol = VCJSON_LEXER_SYMBOL_TRUE;
             return STATUS_SUCCESS;
 
         default:
-            *endpos += 1;
-            *startpos = *endpos;
             return ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c;
     }
 }
