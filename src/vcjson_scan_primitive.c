@@ -72,6 +72,10 @@ vcjson_scan_primitive(
         case 'E': *prim = VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E;          break;
         case 'f': *prim = VCJSON_LEXER_PRIM_HEX_f;                      break;
         case 'F': *prim = VCJSON_LEXER_PRIM_HEX_F;                      break;
+        case 'n': *prim = VCJSON_LEXER_PRIM_LETTER_n;                   break;
+        case 'r': *prim = VCJSON_LEXER_PRIM_LETTER_r;                   break;
+        case 't': *prim = VCJSON_LEXER_PRIM_LETTER_t;                   break;
+        case 'u': *prim = VCJSON_LEXER_PRIM_LETTER_u;                   break;
         case '{': *prim = VCJSON_LEXER_PRIM_LEFT_BRACE;                 break;
         case '[': *prim = VCJSON_LEXER_PRIM_LEFT_BRACKET;               break;
         case '-': *prim = VCJSON_LEXER_PRIM_MINUS;                      break;
@@ -79,6 +83,8 @@ vcjson_scan_primitive(
         case '"': *prim = VCJSON_LEXER_PRIM_QUOTE;                      break;
         case '}': *prim = VCJSON_LEXER_PRIM_RIGHT_BRACE;                break;
         case ']': *prim = VCJSON_LEXER_PRIM_RIGHT_BRACKET;              break;
+        case '\\': *prim = VCJSON_LEXER_PRIM_BACKSLASH;                 break;
+        case '/': *prim = VCJSON_LEXER_PRIM_FORWARD_SLASH;              break;
         case '\0': *prim = VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL;         break;
         case '\1': *prim = VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL;         break;
         case '\2': *prim = VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL;         break;

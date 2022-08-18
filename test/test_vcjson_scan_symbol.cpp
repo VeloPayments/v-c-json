@@ -322,7 +322,7 @@ TEST(unterminated_simple_string)
  */
 TEST(whitespace_string)
 {
-    const char* INPUT = "\"  \t\r\n   \"";
+    const char* INPUT = "\"     \"";
     size_t size = strlen(INPUT);
     int symbol = -1;
     size_t startpos = 100;
@@ -340,9 +340,9 @@ TEST(whitespace_string)
     /* startpos should be correct. */
     TEST_EXPECT(0 == startpos);
     /* endpos should be correct. */
-    TEST_EXPECT(9 == endpos);
+    TEST_EXPECT(6 == endpos);
     /* offset should be correct. */
-    TEST_EXPECT(10 == offset);
+    TEST_EXPECT(7 == offset);
 }
 
 /**
@@ -438,6 +438,8 @@ TEST(string_with_valid_2byte_sequence)
             == vcjson_scan_symbol(
                     &symbol, &startpos, &endpos, INPUT, size, &offset));
 
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
     /* startpos is correct. */
     TEST_EXPECT(0 == startpos);
     /* endpos is correct. */
@@ -514,6 +516,8 @@ TEST(string_with_valid_3byte_sequence)
             == vcjson_scan_symbol(
                     &symbol, &startpos, &endpos, INPUT, size, &offset));
 
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
     /* startpos is correct. */
     TEST_EXPECT(0 == startpos);
     /* endpos is correct. */
@@ -666,6 +670,8 @@ TEST(string_with_valid_4byte_sequence)
             == vcjson_scan_symbol(
                     &symbol, &startpos, &endpos, INPUT, size, &offset));
 
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
     /* startpos is correct. */
     TEST_EXPECT(0 == startpos);
     /* endpos is correct. */
@@ -722,4 +728,565 @@ TEST(string_with_out_of_range_4byte_sequence)
     TEST_EXPECT(4 == endpos);
     /* offset should be correct. */
     TEST_EXPECT(5 == offset);
+}
+
+/**
+ * A string with an unescaped whitespace control sequence is invalid.
+ */
+TEST(string_with_unescaped_ws_control)
+{
+    const char* INPUT = "\"\t\"";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_903c7867_9325_4576_85ac_3e312735def9
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos and endpos should point to the error. */
+    TEST_EXPECT(1 == startpos);
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * A string with an unescaped control sequence is invalid.
+ */
+TEST(string_with_unescaped_control)
+{
+    const char* INPUT = "\"\f\"";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_e08745b4_8269_4c1d_bebe_474170354990
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos and endpos should point to the error. */
+    TEST_EXPECT(1 == startpos);
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * A string with a partial escape sequence is invalid.
+ */
+TEST(string_with_partial_escape)
+{
+    const char* INPUT = R"("\)";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_89b93262_852c_4ab7_a41c_2da08a73a850
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos and endpos should point to the error. */
+    TEST_EXPECT(2 == startpos);
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * A quote can be escaped.
+ */
+TEST(string_with_quote_escape)
+{
+    const char* INPUT = R"("\"")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A backslash (reverse solidus) can be escaped.
+ */
+TEST(string_with_reverse_solidus_escape)
+{
+    const char* INPUT = R"("\\")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A forward slash (solidus) can be escaped.
+ */
+TEST(string_with_solidus_escape)
+{
+    const char* INPUT = R"("\/")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A backspace can be escaped.
+ */
+TEST(string_with_backspace_escape)
+{
+    const char* INPUT = R"("\b")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A form feed can be escaped.
+ */
+TEST(string_with_form_feed_escape)
+{
+    const char* INPUT = R"("\f")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A line feed can be escaped.
+ */
+TEST(string_with_line_feed_escape)
+{
+    const char* INPUT = R"("\n")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A carriage return can be escaped.
+ */
+TEST(string_with_carriage_return_escape)
+{
+    const char* INPUT = R"("\r")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A horizontal tab can be escaped.
+ */
+TEST(string_with_horizontal_tab_escape)
+{
+    const char* INPUT = R"("\t")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A JSON unicode escape sequence can be escaped.
+ */
+TEST(string_with_JSON_unicode_escape)
+{
+    const char* INPUT = R"("\u2b4b")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* the symbol should be STRING. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_STRING == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(8 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_1)
+{
+    const char* INPUT = R"("\u")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(3 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_2)
+{
+    const char* INPUT = R"("\u)";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(3 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_3)
+{
+    const char* INPUT = R"("\u1")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(4 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_4)
+{
+    const char* INPUT = R"("\u1)";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(4 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_5)
+{
+    const char* INPUT = R"("\u1a")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(5 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(5 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(6 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_6)
+{
+    const char* INPUT = R"("\u1a)";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(5 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(5 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_7)
+{
+    const char* INPUT = R"("\u1a7")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(6 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(7 == offset);
+}
+
+/**
+ * A partial JSON unicode escape sequence is invalid.
+ */
+TEST(string_with_partial_JSON_unicode_escape_8)
+{
+    const char* INPUT = R"("\u1a7)";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(6 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(6 == offset);
+}
+
+/**
+ * Any other escape sequence is invalid.
+ */
+TEST(string_with_invalid_escape)
+{
+    const char* INPUT = R"("\q")";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_65b96e7e_25c7_4f2a_9c8d_bce126776faa
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
 }
