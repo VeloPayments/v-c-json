@@ -101,6 +101,11 @@ extern const vcjson_bool* VCJSON_FALSE;
 #define ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8          0x6389
 #define ERROR_VCJSON_SCAN_dbf3f552_c055_4616_96bf_c48f17893162          0x638a
 #define ERROR_VCJSON_SCAN_3673de25_4603_4492_a25a_31752e9395fc          0x638b
+#define ERROR_VCJSON_SCAN_903c7867_9325_4576_85ac_3e312735def9          0x638c
+#define ERROR_VCJSON_SCAN_e08745b4_8269_4c1d_bebe_474170354990          0x638d
+#define ERROR_VCJSON_SCAN_89b93262_852c_4ab7_a41c_2da08a73a850          0x638e
+#define ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2          0x638f
+#define ERROR_VCJSON_SCAN_65b96e7e_25c7_4f2a_9c8d_bce126776faa          0x6390
 
 /**
  * \brief Create an empty \ref vcjson_object using the given allocator.

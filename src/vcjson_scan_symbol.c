@@ -13,6 +13,7 @@
 
 /* forward decls. */
 static bool vcjson_is_whitespace(int symbol);
+static bool vcjson_is_hexdigit(int symbol);
 static status 
 vcjson_scan_string(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
@@ -27,6 +28,14 @@ vcjson_scan_check_u8_3byte_seq(
     size_t size, size_t* offset);
 static status 
 vcjson_scan_check_u8_4byte_seq(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_escape_sequence(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_unicode_escape_sequence(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
 static status vcjson_u8_decode_2byte(
@@ -129,6 +138,46 @@ static bool vcjson_is_whitespace(int symbol)
 }
 
 /**
+ * \brief Check the symbol to see if it is a hex digit.
+ *
+ * \param symbol        The symbol to check.
+ *
+ * \returns true if the symbol is a hex digit and false otherwise.
+ */
+static bool vcjson_is_hexdigit(int symbol)
+{
+    switch (symbol)
+    {
+        case VCJSON_LEXER_PRIM_DIGIT_0:
+        case VCJSON_LEXER_PRIM_DIGIT_1:
+        case VCJSON_LEXER_PRIM_DIGIT_2:
+        case VCJSON_LEXER_PRIM_DIGIT_3:
+        case VCJSON_LEXER_PRIM_DIGIT_4:
+        case VCJSON_LEXER_PRIM_DIGIT_5:
+        case VCJSON_LEXER_PRIM_DIGIT_6:
+        case VCJSON_LEXER_PRIM_DIGIT_7:
+        case VCJSON_LEXER_PRIM_DIGIT_8:
+        case VCJSON_LEXER_PRIM_DIGIT_9:
+        case VCJSON_LEXER_PRIM_HEX_a:
+        case VCJSON_LEXER_PRIM_HEX_A:
+        case VCJSON_LEXER_PRIM_HEX_b:
+        case VCJSON_LEXER_PRIM_HEX_B:
+        case VCJSON_LEXER_PRIM_HEX_c:
+        case VCJSON_LEXER_PRIM_HEX_C:
+        case VCJSON_LEXER_PRIM_HEX_d:
+        case VCJSON_LEXER_PRIM_HEX_D:
+        case VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e:
+        case VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E:
+        case VCJSON_LEXER_PRIM_HEX_f:
+        case VCJSON_LEXER_PRIM_HEX_F:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+/**
  * \brief Attempt to scan a buffer for a string.
  *
  * \note This scanner assumes that the first quote has already been consumed,
@@ -218,6 +267,31 @@ vcjson_scan_string(
                 subseq = *endpos;
                 retval =
                     vcjson_scan_check_u8_4byte_seq(
+                        symbol, &subseq, endpos, input, size, offset);
+                if (STATUS_SUCCESS != retval)
+                {
+                    *startpos = subseq;
+                    goto done;
+                }
+                break;
+
+            /* a literal whitespace control character is invalid. */
+            case VCJSON_LEXER_PRIM_LL_WS_CONTROL:
+                *startpos = *endpos;
+                retval = ERROR_VCJSON_SCAN_903c7867_9325_4576_85ac_3e312735def9;
+                goto done;
+
+            /* a literal control character is invalid. */
+            case VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL:
+                *startpos = *endpos;
+                retval = ERROR_VCJSON_SCAN_e08745b4_8269_4c1d_bebe_474170354990;
+                goto done;
+
+            /* a backslash starts a control character sequence. */
+            case VCJSON_LEXER_PRIM_BACKSLASH:
+                subseq = *endpos;
+                retval =
+                    vcjson_scan_escape_sequence(
                         symbol, &subseq, endpos, input, size, offset);
                 if (STATUS_SUCCESS != retval)
                 {
@@ -542,5 +616,170 @@ static status vcjson_u8_decode_4byte(
 
     /* otherwise, the decode was successful. */
     *codepoint = decoded;
+    return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Scan an escape sequence.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_escape_sequence(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+    size_t subseq;
+
+    /* read the next character. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* decode this character. */
+    switch (prim)
+    {
+        /* an EOF means that the escape sequence is partial. */
+        case VCJSON_LEXER_SYMBOL_SPECIAL_EOF:
+            *startpos = *endpos;
+            return ERROR_VCJSON_SCAN_89b93262_852c_4ab7_a41c_2da08a73a850;
+
+        /* a quote can be escaped. */
+        case VCJSON_LEXER_PRIM_QUOTE:
+        /* a backslash can be escaped. */
+        case VCJSON_LEXER_PRIM_BACKSLASH:
+        /* a forward slash can be escaped. */
+        case VCJSON_LEXER_PRIM_FORWARD_SLASH:
+        /* a backspace can be escaped. */
+        case VCJSON_LEXER_PRIM_HEX_b:
+        /* a form feed can be escaped. */
+        case VCJSON_LEXER_PRIM_HEX_f:
+        /* a line feed can be escaped. */
+        case VCJSON_LEXER_PRIM_LETTER_n:
+        /* a carriage return can be escaped. */
+        case VCJSON_LEXER_PRIM_LETTER_r:
+        /* a horizontal tab can be escaped. */
+        case VCJSON_LEXER_PRIM_LETTER_t:
+            *symbol = VCJSON_LEXER_SYMBOL_LL_ESCAPE;
+            return STATUS_SUCCESS;
+
+        /* a unicode escape sequence can be accepted. */
+        case VCJSON_LEXER_PRIM_LETTER_u:
+            subseq = *endpos;
+            retval = vcjson_scan_unicode_escape_sequence(
+                symbol, &subseq, endpos, input, size, offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                *startpos = subseq;
+            }
+            return retval;
+
+        /* any other escape sequence is invalid. */
+        default:
+            *startpos = *endpos;
+            return ERROR_VCJSON_SCAN_65b96e7e_25c7_4f2a_9c8d_bce126776faa;
+    }
+}
+
+/**
+ * \brief Scan a unicode escape sequence.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_unicode_escape_sequence(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* read the first hex digit. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that it's a hex digit. */
+    if (!vcjson_is_hexdigit(prim))
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
+    }
+
+    /* read the second hex digit. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that it's a hex digit. */
+    if (!vcjson_is_hexdigit(prim))
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
+    }
+
+    /* read the third hex digit. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that it's a hex digit. */
+    if (!vcjson_is_hexdigit(prim))
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
+    }
+
+    /* read the fourth hex digit. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that it's a hex digit. */
+    if (!vcjson_is_hexdigit(prim))
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
+    }
+
+    /* success. */
+    *symbol = VCJSON_LEXER_SYMBOL_LL_ESCAPE;
     return STATUS_SUCCESS;
 }

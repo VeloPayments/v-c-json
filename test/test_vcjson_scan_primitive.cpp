@@ -1967,6 +1967,168 @@ TEST(scan_continuation)
 }
 
 /**
+ * Verify that a backslash character can be scanned.
+ */
+TEST(scan_backslash)
+{
+    const char* INPUT = R"(\)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be BACKSLASH. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_BACKSLASH == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be '\\' */
+    TEST_EXPECT('\\' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that a forward slash character can be scanned.
+ */
+TEST(scan_forward_slash)
+{
+    const char* INPUT = R"(/)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be FORWARD_SLASH. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_FORWARD_SLASH == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be '/' */
+    TEST_EXPECT('/' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that an n character can be scanned.
+ */
+TEST(scan_n)
+{
+    const char* INPUT = R"(n)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be LETTER_n. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_n == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be 'n' */
+    TEST_EXPECT('n' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that an r character can be scanned.
+ */
+TEST(scan_r)
+{
+    const char* INPUT = R"(r)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be LETTER_r. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_r == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be 'r' */
+    TEST_EXPECT('r' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that a t character can be scanned.
+ */
+TEST(scan_t)
+{
+    const char* INPUT = R"(t)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be LETTER_t. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_t == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be 't' */
+    TEST_EXPECT('t' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that a u character can be scanned.
+ */
+TEST(scan_u)
+{
+    const char* INPUT = R"(u)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset));
+
+    /* the primitive should be LETTER_u. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_u == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be 'u' */
+    TEST_EXPECT('u' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
  * Verify that all characters can be decoded.
  */
 TEST(scan_all_characters)
