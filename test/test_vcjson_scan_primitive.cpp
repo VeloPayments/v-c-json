@@ -34,7 +34,7 @@ TEST(scan_eof)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be EOF. */
     TEST_EXPECT(VCJSON_LEXER_SYMBOL_SPECIAL_EOF == prim);
@@ -59,7 +59,7 @@ TEST(scan_colon)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be COLON. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_COLON == prim);
@@ -86,7 +86,7 @@ TEST(scan_comma)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be COMMA. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_COMMA == prim);
@@ -113,7 +113,7 @@ TEST(scan_digit_0)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 0. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_0 == prim);
@@ -140,7 +140,7 @@ TEST(scan_digit_1)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 1. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_1 == prim);
@@ -167,7 +167,7 @@ TEST(scan_digit_2)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 2. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_2 == prim);
@@ -194,7 +194,7 @@ TEST(scan_digit_3)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 3. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_3 == prim);
@@ -221,7 +221,7 @@ TEST(scan_digit_4)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 4. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_4 == prim);
@@ -248,7 +248,7 @@ TEST(scan_digit_5)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 5. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_5 == prim);
@@ -275,7 +275,7 @@ TEST(scan_digit_6)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 6. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_6 == prim);
@@ -302,7 +302,7 @@ TEST(scan_digit_7)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 7. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_7 == prim);
@@ -329,7 +329,7 @@ TEST(scan_digit_8)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 8. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_8 == prim);
@@ -356,7 +356,7 @@ TEST(scan_digit_9)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be 9. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DIGIT_9 == prim);
@@ -383,7 +383,7 @@ TEST(scan_dot)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be DOT. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_DOT == prim);
@@ -410,7 +410,7 @@ TEST(scan_hex_a)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_a. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_a == prim);
@@ -437,7 +437,7 @@ TEST(scan_hex_A)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_A. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_A == prim);
@@ -464,7 +464,7 @@ TEST(scan_hex_b)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_b. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_b == prim);
@@ -491,7 +491,7 @@ TEST(scan_hex_B)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_B. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_B == prim);
@@ -518,7 +518,7 @@ TEST(scan_hex_c)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_c. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_c == prim);
@@ -545,7 +545,7 @@ TEST(scan_hex_C)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_C. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_C == prim);
@@ -572,7 +572,7 @@ TEST(scan_hex_d)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_d. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_d == prim);
@@ -599,7 +599,7 @@ TEST(scan_hex_D)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_D. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_D == prim);
@@ -626,7 +626,7 @@ TEST(scan_hex_or_exponent_e)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_OR_EXPONENT_e. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim);
@@ -653,7 +653,7 @@ TEST(scan_hex_or_exponent_E)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_OR_EXPONENT_E. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E == prim);
@@ -680,7 +680,7 @@ TEST(scan_hex_f)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_f. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_f == prim);
@@ -707,7 +707,7 @@ TEST(scan_hex_F)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be HEX_F. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_HEX_F == prim);
@@ -734,7 +734,7 @@ TEST(scan_left_brace)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LEFT_BRACE. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LEFT_BRACE == prim);
@@ -761,7 +761,7 @@ TEST(scan_left_bracket)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LEFT_BRACKET. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LEFT_BRACKET == prim);
@@ -788,7 +788,7 @@ TEST(scan_minus)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be MINUS */
     TEST_EXPECT(VCJSON_LEXER_PRIM_MINUS == prim);
@@ -815,7 +815,7 @@ TEST(scan_plus)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be PLUS */
     TEST_EXPECT(VCJSON_LEXER_PRIM_PLUS == prim);
@@ -842,7 +842,7 @@ TEST(scan_quote)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be QUOTE */
     TEST_EXPECT(VCJSON_LEXER_PRIM_QUOTE == prim);
@@ -869,7 +869,7 @@ TEST(scan_right_brace)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be RIGHT_BRACE */
     TEST_EXPECT(VCJSON_LEXER_PRIM_RIGHT_BRACE == prim);
@@ -896,7 +896,7 @@ TEST(scan_right_bracket)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be RIGHT_BRACKET */
     TEST_EXPECT(VCJSON_LEXER_PRIM_RIGHT_BRACKET == prim);
@@ -923,7 +923,7 @@ TEST(scan_NUL)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -951,7 +951,7 @@ TEST(scan_SOH)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -979,7 +979,7 @@ TEST(scan_STX)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1007,7 +1007,7 @@ TEST(scan_ETX)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1035,7 +1035,7 @@ TEST(scan_EOT)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1063,7 +1063,7 @@ TEST(scan_ENQ)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1091,7 +1091,7 @@ TEST(scan_ACK)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1119,7 +1119,7 @@ TEST(scan_BEL)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1147,7 +1147,7 @@ TEST(scan_BS)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1175,7 +1175,7 @@ TEST(scan_TAB)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_WS_CONTROL == prim);
@@ -1203,7 +1203,7 @@ TEST(scan_LF)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_WS_CONTROL == prim);
@@ -1231,7 +1231,7 @@ TEST(scan_VT)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1259,7 +1259,7 @@ TEST(scan_FF)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1287,7 +1287,7 @@ TEST(scan_CR)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_WS_CONTROL == prim);
@@ -1315,7 +1315,7 @@ TEST(scan_SO)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1343,7 +1343,7 @@ TEST(scan_SI)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1371,7 +1371,7 @@ TEST(scan_DLE)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1399,7 +1399,7 @@ TEST(scan_DC1)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1427,7 +1427,7 @@ TEST(scan_DC2)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1455,7 +1455,7 @@ TEST(scan_DC3)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1483,7 +1483,7 @@ TEST(scan_DC4)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1511,7 +1511,7 @@ TEST(scan_NAK)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1539,7 +1539,7 @@ TEST(scan_SYN)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1567,7 +1567,7 @@ TEST(scan_ETB)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1595,7 +1595,7 @@ TEST(scan_CAN)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1623,7 +1623,7 @@ TEST(scan_EM)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1651,7 +1651,7 @@ TEST(scan_SUB)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1679,7 +1679,7 @@ TEST(scan_ESC)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1707,7 +1707,7 @@ TEST(scan_FS)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1735,7 +1735,7 @@ TEST(scan_GS)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1763,7 +1763,7 @@ TEST(scan_RS)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1791,7 +1791,7 @@ TEST(scan_US)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be NON_WS_CONTROL. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_NON_WS_CONTROL == prim);
@@ -1819,7 +1819,7 @@ TEST(scan_space)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be WHITESPACE. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_WHITESPACE == prim);
@@ -1846,7 +1846,7 @@ TEST(scan_7bit)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be U8_7BIT. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_U8_7BIT == prim);
@@ -1873,7 +1873,7 @@ TEST(scan_2byte_start)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be U8_2BYTE_START. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_U8_2BYTE_START == prim);
@@ -1900,7 +1900,7 @@ TEST(scan_3byte_start)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be U8_3BYTE_START. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_U8_3BYTE_START == prim);
@@ -1927,7 +1927,7 @@ TEST(scan_4byte_start)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be U8_4BYTE_START. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_U8_4BYTE_START == prim);
@@ -1954,7 +1954,7 @@ TEST(scan_continuation)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be U8_CONTINUATION. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LL_U8_CONTINUATION == prim);
@@ -1981,7 +1981,7 @@ TEST(scan_backslash)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be BACKSLASH. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_BACKSLASH == prim);
@@ -2008,7 +2008,7 @@ TEST(scan_forward_slash)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be FORWARD_SLASH. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_FORWARD_SLASH == prim);
@@ -2035,7 +2035,7 @@ TEST(scan_n)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LETTER_n. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_n == prim);
@@ -2062,7 +2062,7 @@ TEST(scan_r)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LETTER_r. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_r == prim);
@@ -2089,7 +2089,7 @@ TEST(scan_t)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LETTER_t. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_t == prim);
@@ -2116,7 +2116,7 @@ TEST(scan_u)
     TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_scan_primitive(
-                    &prim, &position, INPUT, size, &offset));
+                    &prim, &position, INPUT, size, &offset, false));
 
     /* the primitive should be LETTER_u. */
     TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_u == prim);
@@ -2126,6 +2126,33 @@ TEST(scan_u)
     TEST_EXPECT('u' == INPUT[position]);
     /* the offset should be 1. */
     TEST_EXPECT(1 == offset);
+}
+
+/**
+ * Verify that the offset is NOT updated when lookahead is set to true.
+ */
+TEST(lookahead)
+{
+    const char* INPUT = R"(u)";
+    size_t size = 1;
+    int prim = 0;
+    size_t position = 0;
+    size_t offset = 0;
+
+    /* scanning for a primitive should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_primitive(
+                    &prim, &position, INPUT, size, &offset, true));
+
+    /* the primitive should be LETTER_u. */
+    TEST_EXPECT(VCJSON_LEXER_PRIM_LETTER_u == prim);
+    /* the position should be 0. */
+    TEST_EXPECT(0 == position);
+    /* the value at this position should be 'u' */
+    TEST_EXPECT('u' == INPUT[position]);
+    /* the offset should be 1. */
+    TEST_EXPECT(0 == offset);
 }
 
 /**
@@ -2148,7 +2175,7 @@ TEST(scan_all_characters)
         TEST_ASSERT(
             STATUS_SUCCESS
                 == vcjson_scan_primitive(
-                        &prim, &position, (char*)INPUT, size, &offset));
+                        &prim, &position, (char*)INPUT, size, &offset, false));
 
         /* the position should be 0. */
         TEST_EXPECT(0 == position);
