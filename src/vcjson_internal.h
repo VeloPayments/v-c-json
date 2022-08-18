@@ -11,6 +11,7 @@
 #include <rcpr/rbtree.h>
 #include <rcpr/resource/protected.h>
 #include <rcpr/status.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -274,6 +275,7 @@ vcjson_array_resource_release(RCPR_SYM(resource)* r);
  * \param input         Pointer to the input buffer to scan.
  * \param size          The size of this input buffer.
  * \param offset        Pointer to the current offset, to be updated on success.
+ * \param lookahead     Set to true if we are only looking ahead.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -282,7 +284,7 @@ vcjson_array_resource_release(RCPR_SYM(resource)* r);
 status FN_DECL_MUST_CHECK
 vcjson_scan_primitive(
     int* prim, size_t* position, const char* input, size_t size,
-    size_t* offset);
+    size_t* offset, bool lookahead);
 
 /**
  * \brief Attempt to scan a buffer for the next symbol.

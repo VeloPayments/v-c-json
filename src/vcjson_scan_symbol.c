@@ -19,6 +19,10 @@ vcjson_scan_string(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
 static status 
+vcjson_scan_true(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
 vcjson_scan_check_u8_2byte_seq(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
@@ -73,7 +77,8 @@ vcjson_scan_symbol(
     /* scan for the next primitive symbol, skipping over whitespace. */
     do
     {
-        retval = vcjson_scan_primitive(&prim, startpos, input, size, offset);
+        retval =
+            vcjson_scan_primitive(&prim, startpos, input, size, offset, false);
         if (STATUS_SUCCESS != retval)
         {
             *endpos = *startpos;
@@ -100,6 +105,13 @@ vcjson_scan_symbol(
         case VCJSON_LEXER_PRIM_QUOTE:
             retval =
                 vcjson_scan_string(
+                    symbol, startpos, endpos, input, size, offset);
+            goto done;
+
+        /* handle a possible true. */
+        case VCJSON_LEXER_PRIM_LETTER_t:
+            retval =
+                vcjson_scan_true(
                     symbol, startpos, endpos, input, size, offset);
             goto done;
 
@@ -210,7 +222,8 @@ vcjson_scan_string(
     /* scan over string. */
     do
     {
-        retval = vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        retval =
+            vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
         if (STATUS_SUCCESS != retval)
         {
             goto done;
@@ -336,7 +349,7 @@ vcjson_scan_check_u8_2byte_seq(
 
     /* read the next character. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -416,7 +429,7 @@ vcjson_scan_check_u8_3byte_seq(
 
     /* read the second byte character. */
     retval =
-        vcjson_scan_primitive(&prim1, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim1, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -431,7 +444,7 @@ vcjson_scan_check_u8_3byte_seq(
 
     /* read the third byte character. */
     retval =
-        vcjson_scan_primitive(&prim2, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim2, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -521,7 +534,7 @@ vcjson_scan_check_u8_4byte_seq(
 
     /* read the second byte character. */
     retval =
-        vcjson_scan_primitive(&prim1, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim1, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -536,7 +549,7 @@ vcjson_scan_check_u8_4byte_seq(
 
     /* read the third byte character. */
     retval =
-        vcjson_scan_primitive(&prim2, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim2, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -551,7 +564,7 @@ vcjson_scan_check_u8_4byte_seq(
 
     /* read the fourth byte character. */
     retval =
-        vcjson_scan_primitive(&prim3, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim3, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -645,7 +658,7 @@ vcjson_scan_escape_sequence(
 
     /* read the next character. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -721,7 +734,7 @@ vcjson_scan_unicode_escape_sequence(
 
     /* read the first hex digit. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -736,7 +749,7 @@ vcjson_scan_unicode_escape_sequence(
 
     /* read the second hex digit. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -751,7 +764,7 @@ vcjson_scan_unicode_escape_sequence(
 
     /* read the third hex digit. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -766,7 +779,7 @@ vcjson_scan_unicode_escape_sequence(
 
     /* read the fourth hex digit. */
     retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset);
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -782,4 +795,99 @@ vcjson_scan_unicode_escape_sequence(
     /* success. */
     *symbol = VCJSON_LEXER_SYMBOL_LL_ESCAPE;
     return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Attempt to scan a buffer for true.
+ *
+ * \note This scanner assumes that the first letter has already been consumed,
+ * and that both offset and startpos have been update to reflect this.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+vcjson_scan_true(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* attempt to read the 'r'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 'r'. */
+    if (VCJSON_LEXER_PRIM_LETTER_r != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_c48ee2cb_30dc_4264_90f8_c8545f131429;
+    }
+
+    /* attempt to read the 'u'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is a 'u'. */
+    if (VCJSON_LEXER_PRIM_LETTER_u != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_b71d4bff_342e_45ce_b1d5_e77f472ebc95;
+    }
+
+    /* attempt to read the 'e'. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this is an 'e'. */
+    if (VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e != prim)
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_ddb74f50_c250_463f_ad04_7fb6a181790d;
+    }
+
+    /* look ahead to the next character. */
+    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, true);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* verify that this next character is a valid non-identifier. */
+    switch (prim)
+    {
+        case VCJSON_LEXER_PRIM_COMMA:
+        case VCJSON_LEXER_PRIM_RIGHT_BRACKET:
+        case VCJSON_LEXER_PRIM_RIGHT_BRACE:
+        case VCJSON_LEXER_PRIM_LL_WS_CONTROL:
+        case VCJSON_LEXER_PRIM_LL_WHITESPACE:
+        case VCJSON_LEXER_SYMBOL_SPECIAL_EOF:
+            /* success. */
+            *symbol = VCJSON_LEXER_SYMBOL_TRUE;
+            return STATUS_SUCCESS;
+
+        default:
+            *endpos += 1;
+            *startpos = *endpos;
+            return ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c;
+    }
 }

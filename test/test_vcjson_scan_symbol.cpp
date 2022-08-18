@@ -1069,7 +1069,7 @@ TEST(string_with_partial_JSON_unicode_escape_1)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1095,7 +1095,7 @@ TEST(string_with_partial_JSON_unicode_escape_2)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1121,7 +1121,7 @@ TEST(string_with_partial_JSON_unicode_escape_3)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1147,7 +1147,7 @@ TEST(string_with_partial_JSON_unicode_escape_4)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1173,7 +1173,7 @@ TEST(string_with_partial_JSON_unicode_escape_5)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1199,7 +1199,7 @@ TEST(string_with_partial_JSON_unicode_escape_6)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1225,7 +1225,7 @@ TEST(string_with_partial_JSON_unicode_escape_7)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1251,7 +1251,7 @@ TEST(string_with_partial_JSON_unicode_escape_8)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2
             == vcjson_scan_symbol(
@@ -1277,7 +1277,7 @@ TEST(string_with_invalid_escape)
     size_t endpos = 100;
     size_t offset = 0;
 
-    /* scanning for a symbol should succeed. */
+    /* scanning for a symbol should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_SCAN_65b96e7e_25c7_4f2a_9c8d_bce126776faa
             == vcjson_scan_symbol(
@@ -1289,4 +1289,242 @@ TEST(string_with_invalid_escape)
     TEST_EXPECT(2 == endpos);
     /* offset should be correct. */
     TEST_EXPECT(3 == offset);
+}
+
+/**
+ * A 't' is an unknown symbol.
+ */
+TEST(unknown_t)
+{
+    const char* INPUT = "t";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_c48ee2cb_30dc_4264_90f8_c8545f131429
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * A 'tx' is an unknown symbol.
+ */
+TEST(unknown_tx)
+{
+    const char* INPUT = "tx";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_c48ee2cb_30dc_4264_90f8_c8545f131429
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * A 'tr' is an unknown symbol.
+ */
+TEST(unknown_tr)
+{
+    const char* INPUT = "tr";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_b71d4bff_342e_45ce_b1d5_e77f472ebc95
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * A 'trx' is an unknown symbol.
+ */
+TEST(unknown_trx)
+{
+    const char* INPUT = "trx";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_b71d4bff_342e_45ce_b1d5_e77f472ebc95
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
+}
+
+/**
+ * A 'tru' is an unknown symbol.
+ */
+TEST(unknown_tru)
+{
+    const char* INPUT = "tru";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_ddb74f50_c250_463f_ad04_7fb6a181790d
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(3 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
+}
+
+/**
+ * A 'trux' is an unknown symbol.
+ */
+TEST(unknown_trux)
+{
+    const char* INPUT = "trux";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_ddb74f50_c250_463f_ad04_7fb6a181790d
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(3 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A 'true' can be scanned. 
+ */
+TEST(true_happy)
+{
+    const char* INPUT = "true";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is TRUE. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_TRUE == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A 'true' trailing whitespace can be scanned.
+ */
+TEST(true_with_whitespace)
+{
+    const char* INPUT = "true ";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is TRUE. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_TRUE == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A 'truep' is an error.
+ */
+TEST(unknown_truep)
+{
+    const char* INPUT = "truep";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(4 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
 }

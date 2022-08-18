@@ -21,6 +21,7 @@
  * \param input         Pointer to the input buffer to scan.
  * \param size          The size of this input buffer.
  * \param offset        Pointer to the current offset, to be updated on success.
+ * \param lookahead     Set to true if we are only looking ahead.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -29,13 +30,18 @@
 status FN_DECL_MUST_CHECK
 vcjson_scan_primitive(
     int* prim, size_t* position, const char* input, size_t size,
-    size_t* offset)
+    size_t* offset, bool lookahead)
 {
+    (void)lookahead;
+
     /* are we at EOF? */
     if (*offset >= size)
     {
         *prim = VCJSON_LEXER_SYMBOL_SPECIAL_EOF;
-        *position = *offset;
+        if (!lookahead)
+        {
+            *position = *offset;
+        }
         return STATUS_SUCCESS;
     }
 
@@ -153,10 +159,12 @@ vcjson_scan_primitive(
     /* if we did not fail decoding... */
     if (VCJSON_LEXER_SYMBOL_INTERNAL_ERROR != *prim)
     {
-        /* set position. */
-        *position = *offset;
-        /* update offset. */
-        *offset += 1;
+        /* update offset and position if lookahead is false */
+        if (!lookahead)
+        {
+            *position = *offset;
+            *offset += 1;
+        }
         /* success. */
         return STATUS_SUCCESS;
     }
