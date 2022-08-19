@@ -1818,3 +1818,215 @@ TEST(unknown_falsep)
     /* offset should be correct. */
     TEST_EXPECT(5 == offset);
 }
+
+/**
+ * An 'n' is an unknown symbol.
+ */
+TEST(unknown_n)
+{
+    const char* INPUT = "n";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_21dcc558_3dc4_47dc_9ea2_e8d7434cdf4a
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * 'nx' is an unknown symbol.
+ */
+TEST(unknown_nx)
+{
+    const char* INPUT = "nx";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_21dcc558_3dc4_47dc_9ea2_e8d7434cdf4a
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * 'nu' is an unknown symbol.
+ */
+TEST(unknown_nu)
+{
+    const char* INPUT = "nu";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * 'nux' is an unknown symbol.
+ */
+TEST(unknown_nux)
+{
+    const char* INPUT = "nux";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
+}
+
+/**
+ * 'nul' is an unknown symbol.
+ */
+TEST(unknown_nul)
+{
+    const char* INPUT = "nul";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(3 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(3 == offset);
+}
+
+/**
+ * A 'null' can be scanned. 
+ */
+TEST(null_happy)
+{
+    const char* INPUT = "null";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NULL. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NULL == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * A 'null' with trailing whitespace can be scanned. 
+ */
+TEST(null_with_whitespace)
+{
+    const char* INPUT = "null ";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NULL. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NULL == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * 'nullp' is an unknown symbol.
+ */
+TEST(unknown_nullp)
+{
+    const char* INPUT = "nullp";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(4 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
