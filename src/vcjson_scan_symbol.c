@@ -61,6 +61,34 @@ vcjson_peek_termination_character(
     const char* input, size_t size, size_t* offset);
 
 /**
+ * Accept a token and assign to the given pointer, or fail with the given error
+ * code.
+ */
+#define ACCEPT_ASSIGN_OR_FAIL(symbol_ptr, test, error_code) \
+    retval = \
+        vcjson_scan_primitive( \
+            (symbol_ptr), endpos, input, size, offset, false); \
+    do \
+    { \
+        if (STATUS_SUCCESS != retval) \
+        { \
+            return retval; \
+        } \
+        \
+        if (! (test)) \
+        { \
+            *startpos = *endpos; \
+            return (error_code); \
+        } \
+    } while (0)
+
+/**
+ * Accept a token or fail with the given error code.
+ */
+#define ACCEPT_OR_FAIL(test, error_code) \
+    ACCEPT_ASSIGN_OR_FAIL(&prim, (test), (error_code))
+
+/**
  * \brief Attempt to scan a buffer for the next symbol.
  *
  * \note This parse function sets a primitive as well as the buffer position.
@@ -372,20 +400,10 @@ vcjson_scan_check_u8_2byte_seq(
     status retval;
     int prim;
 
-    /* read the next character. */
-    retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_40221afc_d49e_404e_8b18_1be7e48a2ecf;
-    }
+    /* the next byte is a continuation byte. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LL_U8_CONTINUATION == prim,
+        ERROR_VCJSON_SCAN_40221afc_d49e_404e_8b18_1be7e48a2ecf);
 
     /* convert the two-byte sequence into a codepoint. */
     uint32_t codepoint;
@@ -452,35 +470,15 @@ vcjson_scan_check_u8_3byte_seq(
     status retval;
     int prim1, prim2;
 
-    /* read the second byte character. */
-    retval =
-        vcjson_scan_primitive(&prim1, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* the second byte is a continuation byte. */
+    ACCEPT_ASSIGN_OR_FAIL(
+        &prim1, prim1 == VCJSON_LEXER_PRIM_LL_U8_CONTINUATION,
+        ERROR_VCJSON_SCAN_3371878e_c9c8_44b8_be57_60d9ace6bd4f);
 
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim1)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_3371878e_c9c8_44b8_be57_60d9ace6bd4f;
-    }
-
-    /* read the third byte character. */
-    retval =
-        vcjson_scan_primitive(&prim2, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim2)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_3371878e_c9c8_44b8_be57_60d9ace6bd4f;
-    }
+    /* the third byte is a continuation byte. */
+    ACCEPT_ASSIGN_OR_FAIL(
+        &prim2, prim2 == VCJSON_LEXER_PRIM_LL_U8_CONTINUATION,
+        ERROR_VCJSON_SCAN_3371878e_c9c8_44b8_be57_60d9ace6bd4f);
 
     /* convert the three-byte sequence into a codepoint. */
     uint32_t codepoint;
@@ -557,50 +555,20 @@ vcjson_scan_check_u8_4byte_seq(
     status retval;
     int prim1, prim2, prim3;
 
-    /* read the second byte character. */
-    retval =
-        vcjson_scan_primitive(&prim1, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* the second byte is a continuation byte. */
+    ACCEPT_ASSIGN_OR_FAIL(
+        &prim1, prim1 == VCJSON_LEXER_PRIM_LL_U8_CONTINUATION,
+        ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8);
 
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim1)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8;
-    }
+    /* the third byte is a continuation byte. */
+    ACCEPT_ASSIGN_OR_FAIL(
+        &prim2, prim2 == VCJSON_LEXER_PRIM_LL_U8_CONTINUATION,
+        ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8);
 
-    /* read the third byte character. */
-    retval =
-        vcjson_scan_primitive(&prim2, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim2)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8;
-    }
-
-    /* read the fourth byte character. */
-    retval =
-        vcjson_scan_primitive(&prim3, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* it should be a continuation byte. */
-    if (VCJSON_LEXER_PRIM_LL_U8_CONTINUATION != prim3)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8;
-    }
+    /* the fourth byte is a continuation byte. */
+    ACCEPT_ASSIGN_OR_FAIL(
+        &prim3, prim3 == VCJSON_LEXER_PRIM_LL_U8_CONTINUATION,
+        ERROR_VCJSON_SCAN_c85ab469_9208_4917_958f_a8c75758dbb8);
 
     /* convert the four-byte sequence into a codepoint. */
     uint32_t codepoint;
@@ -757,65 +725,25 @@ vcjson_scan_unicode_escape_sequence(
     status retval;
     int prim;
 
-    /* read the first hex digit. */
-    retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept the first hex digit. */
+    ACCEPT_OR_FAIL(
+        vcjson_is_hexdigit(prim), 
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2);
 
-    /* verify that it's a hex digit. */
-    if (!vcjson_is_hexdigit(prim))
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
-    }
+    /* accept the second hex digit. */
+    ACCEPT_OR_FAIL(
+        vcjson_is_hexdigit(prim), 
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2);
 
-    /* read the second hex digit. */
-    retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept the third hex digit. */
+    ACCEPT_OR_FAIL(
+        vcjson_is_hexdigit(prim), 
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2);
 
-    /* verify that it's a hex digit. */
-    if (!vcjson_is_hexdigit(prim))
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
-    }
-
-    /* read the third hex digit. */
-    retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that it's a hex digit. */
-    if (!vcjson_is_hexdigit(prim))
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
-    }
-
-    /* read the fourth hex digit. */
-    retval =
-        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that it's a hex digit. */
-    if (!vcjson_is_hexdigit(prim))
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2;
-    }
+    /* accept the fourth hex digit. */
+    ACCEPT_OR_FAIL(
+        vcjson_is_hexdigit(prim), 
+        ERROR_VCJSON_SCAN_437e1025_7c3f_4a65_92d5_771930c7a3d2);
 
     /* success. */
     *symbol = VCJSON_LEXER_SYMBOL_LL_ESCAPE;
@@ -848,47 +776,20 @@ vcjson_scan_true(
     status retval;
     int prim;
 
-    /* attempt to read the 'r'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept an 'r'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_r == prim,
+        ERROR_VCJSON_SCAN_c48ee2cb_30dc_4264_90f8_c8545f131429);
 
-    /* verify that this is an 'r'. */
-    if (VCJSON_LEXER_PRIM_LETTER_r != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_c48ee2cb_30dc_4264_90f8_c8545f131429;
-    }
+    /* accept a 'u'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_u == prim,
+        ERROR_VCJSON_SCAN_b71d4bff_342e_45ce_b1d5_e77f472ebc95);
 
-    /* attempt to read the 'u'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is a 'u'. */
-    if (VCJSON_LEXER_PRIM_LETTER_u != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_b71d4bff_342e_45ce_b1d5_e77f472ebc95;
-    }
-
-    /* attempt to read the 'e'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is an 'e'. */
-    if (VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_ddb74f50_c250_463f_ad04_7fb6a181790d;
-    }
+    /* accept an 'e'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim,
+        ERROR_VCJSON_SCAN_ddb74f50_c250_463f_ad04_7fb6a181790d);
 
     /* look ahead to the next character. */
     retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, true);
@@ -937,61 +838,25 @@ vcjson_scan_false(
     status retval;
     int prim;
 
-    /* attempt to read the 'a'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept an 'a'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_HEX_a == prim,
+        ERROR_VCJSON_SCAN_9b5a8590_05d8_4c88_a45a_48b4ebf1ce3c);
 
-    /* verify that this is an 'a'. */
-    if (VCJSON_LEXER_PRIM_HEX_a != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_9b5a8590_05d8_4c88_a45a_48b4ebf1ce3c;
-    }
+    /* accept an 'l'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_l == prim,
+        ERROR_VCJSON_SCAN_19478855_7462_4d89_a9c9_ff500d4328c2);
 
-    /* attempt to read the 'l'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept an 's'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_s == prim,
+        ERROR_VCJSON_SCAN_2783f9f0_77a0_4b4c_b561_8dc932f89ea3);
 
-    /* verify that this is an 'l'. */
-    if (VCJSON_LEXER_PRIM_LETTER_l != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_19478855_7462_4d89_a9c9_ff500d4328c2;
-    }
-
-    /* attempt to read the 's'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is an 's'. */
-    if (VCJSON_LEXER_PRIM_LETTER_s != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_2783f9f0_77a0_4b4c_b561_8dc932f89ea3;
-    }
-
-    /* attempt to read the 'e'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is an 'e'. */
-    if (VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_83ad3fa4_4479_4fc0_9f28_912c2c619473;
-    }
+    /* accept an 'e'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim,
+        ERROR_VCJSON_SCAN_83ad3fa4_4479_4fc0_9f28_912c2c619473);
 
     /* make sure that this token has terminated. */
     retval = vcjson_peek_termination_character(input, size, offset);
@@ -1076,47 +941,20 @@ vcjson_scan_null(
     status retval;
     int prim;
 
-    /* attempt to read the 'u'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
+    /* accept a 'u'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_u == prim,
+        ERROR_VCJSON_SCAN_21dcc558_3dc4_47dc_9ea2_e8d7434cdf4a);
 
-    /* verify that this is a 'u'. */
-    if (VCJSON_LEXER_PRIM_LETTER_u != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_21dcc558_3dc4_47dc_9ea2_e8d7434cdf4a;
-    }
+    /* accept an 'l'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_l == prim,
+        ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647);
 
-    /* attempt to read the first 'l'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is an 'l'. */
-    if (VCJSON_LEXER_PRIM_LETTER_l != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647;
-    }
-
-    /* attempt to read the second 'l'. */
-    retval = vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
-    if (STATUS_SUCCESS != retval)
-    {
-        return retval;
-    }
-
-    /* verify that this is an 'l'. */
-    if (VCJSON_LEXER_PRIM_LETTER_l != prim)
-    {
-        *startpos = *endpos;
-        return ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647;
-    }
+    /* accept an 'l'. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_LETTER_l == prim,
+        ERROR_VCJSON_SCAN_2519e212_7d80_41ab_af09_72989c6f5647);
 
     /* make sure that this token has terminated. */
     retval = vcjson_peek_termination_character(input, size, offset);
