@@ -36,6 +36,10 @@ static status
     vcjson_read_value_string(
         vcjson_value** value, size_t* error_begin, size_t* error_end,
         allocator* alloc, const char* input, size_t size, size_t* offset);
+static status
+    vcjson_string_simplify(
+        char* output, size_t output_len, size_t* simplified_len,
+        const char* input, size_t input_length);
 
 /**
  * \brief Attempt to parse a JSON value from a UTF-8 character buffer.
@@ -248,26 +252,32 @@ static status
     char* buffer;
     size_t buffer_size;
 
-    /* TODO - JSON strings need to be changed to deal with raw buffer values. */
-
     /* compute the maximum string size. */
     buffer_size = (*error_end + 1) - *error_begin - 2;
     printf("%lu:%lu:%lu\n", *error_end, *error_begin, buffer_size);
     fflush(stdout);
 
-    /* duplicate the string value to create a working buffer. */
+    /* create a working buffer. */
     retval = allocator_allocate(alloc, (void**)&buffer, buffer_size + 1);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
     }
 
-    /* copy the string value. */
-    memcpy(buffer, input + *error_begin + 1, buffer_size);
-    buffer[buffer_size] = 0;
+    /* simplify the string value. */
+    size_t length;
+    retval =
+        vcjson_string_simplify(
+            buffer, buffer_size + 1, &length, input + *error_begin + 1,
+            buffer_size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_buffer;
+    }
 
     /* create a string from this value. */
-    retval = vcjson_string_create(&string_value, alloc, buffer);
+    retval =
+        vcjson_string_create_from_raw(&string_value, alloc, buffer, length);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_buffer;
@@ -295,7 +305,7 @@ cleanup_string_value:
 cleanup_buffer:
     memset(buffer, 0, buffer_size);
     release_retval = allocator_reclaim(alloc, buffer);
-    if (STATUS_SUCCESS != retval)
+    if (STATUS_SUCCESS != release_retval)
     {
         retval = release_retval;
     }
@@ -373,4 +383,126 @@ static status
         default:
             return ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090;
     }
+}
+
+/**
+ * \brief Convert a JSON string value from input to a raw C string value.
+ *
+ * This method converts escape codes into their raw values and converts UTF-16
+ * values and surrogate pairs provided as u escape codes and pairs to UTF-8
+ * values.
+ *
+ * \param output            Buffer to hold the output string.
+ * \param output_len        The maximum output length.
+ * \param simplified_len    The length of the simplified string.
+ * \param input             The input string.
+ * \param input_length      The length of the input string.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+    vcjson_string_simplify(
+        char* output, size_t output_len, size_t* simplified_len,
+        const char* input, size_t input_length)
+{
+    *simplified_len = 0;
+
+    for (size_t i = 0; i < input_length; ++i)
+    {
+        char ch = input[i];
+
+        /* only copy at max output_len characters. */
+        if (*simplified_len >= output_len)
+        {
+            return STATUS_SUCCESS;
+        }
+
+        switch (ch)
+        {
+            /* is this the beginning of an escape sequence? */
+            case '\\':
+                if (i+1 < input_length)
+                {
+                    char escape = input[i+1];
+                    switch (escape)
+                    {
+                        case 'b':
+                            output[*simplified_len] = '\b';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case 'f':
+                            output[*simplified_len] = '\f';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case 'n':
+                            output[*simplified_len] = '\n';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case 'r':
+                            output[*simplified_len] = '\r';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case 't':
+                            output[*simplified_len] = '\t';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case '\\':
+                            output[*simplified_len] = '\\';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case '/':
+                            output[*simplified_len] = '/';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        case '"':
+                            output[*simplified_len] = '"';
+                            ++(*simplified_len);
+                            ++i;
+                            break;
+
+                        default:
+                        return
+                        ERROR_VCJSON_PARSE_40331c16_1a5d_4b56_984b_e9f3b65c5661;
+                    }
+                }
+                else
+                {
+                    /* cut-off escape sequence. */
+                    return
+                        ERROR_VCJSON_PARSE_4a0c973b_8689_4b34_895e_f494e2c325fb;
+                }
+                break;
+
+            default:
+                output[*simplified_len] = ch;
+                ++(*simplified_len);
+                break;
+        }
+    }
+
+    /* add the ASCII zero. */
+    if (*simplified_len < output_len)
+    {
+        output[*simplified_len] = 0;
+        ++(*simplified_len);
+    }
+
+    /* success. */
+    return STATUS_SUCCESS;
 }
