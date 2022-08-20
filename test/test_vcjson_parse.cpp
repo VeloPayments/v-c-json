@@ -6,8 +6,11 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <cstring>
 #include <minunit/minunit.h>
 #include <vcjson/vcjson.h>
+
+using namespace std;
 
 RCPR_IMPORT_allocator;
 RCPR_IMPORT_resource;
@@ -326,6 +329,42 @@ TEST(vcjson_parse_null_true)
     TEST_EXPECT(8 == error_end);
 
     /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an empty string.
+ */
+TEST(vcjson_parse_empty_string_value)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_string* stringvalue = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_EXPECT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, R"("")"));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is string. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(value));
+    /* get the string value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringvalue, value));
+    /* the string value should be empty. */
+    TEST_EXPECT(!strcmp("", vcjson_string_value(stringvalue)));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
     TEST_ASSERT(STATUS_SUCCESS
         == resource_release(allocator_resource_handle(alloc)));
 }
