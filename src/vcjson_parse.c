@@ -6,7 +6,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
-#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <vcjson/vcjson.h>
 
@@ -34,6 +34,10 @@ static status
         allocator* alloc, const char* input, size_t size, size_t* offset);
 static status
     vcjson_read_value_string(
+        vcjson_value** value, size_t* error_begin, size_t* error_end,
+        allocator* alloc, const char* input, size_t size, size_t* offset);
+static status
+    vcjson_read_value_number(
         vcjson_value** value, size_t* error_begin, size_t* error_end,
         allocator* alloc, const char* input, size_t size, size_t* offset);
 static status
@@ -224,6 +228,89 @@ static status
 }
 
 /**
+ * \brief Create a number value from input.
+ *
+ * \param value         Pointer to the value pointer to hold the JSON value on
+ *                      success.
+ * \param error_begin   Pointer to receive the start of an error location on
+ *                      failure.
+ * \param error_end     Pointer to receive the end of an error location on
+ *                      failure.
+ * \param alloc         The allocator to use for this operation.
+ * \param input         The input UTF-8 character buffer.
+ * \param size          The size of this buffer.
+ * \param offset        The current offset in the input buffer.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+    vcjson_read_value_number(
+        vcjson_value** value, size_t* error_begin, size_t* error_end,
+        allocator* alloc, const char* input, size_t /*size*/,
+        size_t* /*offset*/)
+{
+    status retval, release_retval;
+    vcjson_number* number;
+    char* buffer;
+    size_t buffer_size;
+
+    /* compute the working string size. */
+    buffer_size = (*error_end + 1) - *error_begin;
+
+    /* create a working buffer. */
+    retval = allocator_allocate(alloc, (void**)&buffer, buffer_size + 1);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* copy the string value. */
+    memcpy(buffer, input + *error_begin, buffer_size);
+    buffer[buffer_size] = 0;
+
+    /* convert this to a number. */
+    double numberval = atof(buffer);
+
+    /* create a JSON number. */
+    retval = vcjson_number_create(&number, alloc, numberval);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_buffer;
+    }
+
+    /* create a JSON value. */
+    retval = vcjson_value_create_from_number(value, alloc, number);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_number;
+    }
+
+    /* success. */
+    retval = STATUS_SUCCESS;
+    goto cleanup_buffer;
+
+cleanup_number:
+    release_retval = resource_release(vcjson_number_resource_handle(number));
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
+cleanup_buffer:
+    memset(buffer, 0, buffer_size);
+    release_retval = allocator_reclaim(alloc, buffer);
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
+done:
+    return retval;
+}
+
+/**
  * \brief Create a string value from input.
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
@@ -254,8 +341,6 @@ static status
 
     /* compute the maximum string size. */
     buffer_size = (*error_end + 1) - *error_begin - 2;
-    printf("%lu:%lu:%lu\n", *error_end, *error_begin, buffer_size);
-    fflush(stdout);
 
     /* create a working buffer. */
     retval = allocator_allocate(alloc, (void**)&buffer, buffer_size + 1);
@@ -371,6 +456,12 @@ static status
         case VCJSON_LEXER_SYMBOL_NULL:
             return
                 vcjson_read_value_null(
+                    value, error_begin, error_end, alloc, input, size, offset);
+
+        /* read a number literal. */
+        case VCJSON_LEXER_SYMBOL_NUMBER:
+            return
+                vcjson_read_value_number(
                     value, error_begin, error_end, alloc, input, size, offset);
 
         /* read a string literal. */

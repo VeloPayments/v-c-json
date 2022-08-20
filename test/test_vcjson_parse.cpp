@@ -6,6 +6,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <cmath>
 #include <cstring>
 #include <minunit/minunit.h>
 #include <vcjson/vcjson.h>
@@ -329,6 +330,43 @@ TEST(vcjson_parse_null_true)
     TEST_EXPECT(8 == error_end);
 
     /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse a number.
+ */
+TEST(vcjson_parse_number)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_number* numberval = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const double epsilon = 0.0001;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing multiple symbols fails. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, "3.14"));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is number. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_NUMBER == vcjson_value_type(value));
+    /* get the number value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_number(&numberval, value));
+    /* verify that the number value matches what we expect. */
+    TEST_EXPECT(fabs(vcjson_number_value(numberval) - 3.14) < epsilon);
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
     TEST_ASSERT(STATUS_SUCCESS
         == resource_release(allocator_resource_handle(alloc)));
 }
