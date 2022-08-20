@@ -6,14 +6,16 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <vcjson/vcjson.h>
 
 #include "vcjson_internal.h"
 
 /* forward decls. */
-static bool vcjson_is_whitespace(int symbol);
+static bool vcjson_is_digit(int symbol);
 static bool vcjson_is_hexdigit(int symbol);
+static bool vcjson_is_whitespace(int symbol);
 static status 
 vcjson_scan_string(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
@@ -28,6 +30,26 @@ vcjson_scan_false(
     size_t size, size_t* offset);
 static status 
 vcjson_scan_null(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_maybe_decimal(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_number(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_negative_number(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_decimal(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset);
+static status 
+vcjson_scan_exponent(
     int* symbol, size_t* startpos, size_t* endpos, const char* input,
     size_t size, size_t* offset);
 static status 
@@ -168,6 +190,37 @@ vcjson_scan_symbol(
                     symbol, startpos, endpos, input, size, offset);
             goto done;
 
+        /* handle the start of a negative number. */
+        case VCJSON_LEXER_PRIM_MINUS:
+            *endpos = *startpos;
+            retval =
+                vcjson_scan_negative_number(
+                    symbol, startpos, endpos, input, size, offset);
+            goto done;
+
+        /* handle the start of a possible decimal number. */
+        case VCJSON_LEXER_PRIM_DIGIT_0:
+            retval =
+                vcjson_scan_maybe_decimal(
+                    symbol, startpos, endpos, input, size, offset);
+            goto done;
+
+        /* handle the start of a possible number. */
+        case VCJSON_LEXER_PRIM_DIGIT_1:
+        case VCJSON_LEXER_PRIM_DIGIT_2:
+        case VCJSON_LEXER_PRIM_DIGIT_3:
+        case VCJSON_LEXER_PRIM_DIGIT_4:
+        case VCJSON_LEXER_PRIM_DIGIT_5:
+        case VCJSON_LEXER_PRIM_DIGIT_6:
+        case VCJSON_LEXER_PRIM_DIGIT_7:
+        case VCJSON_LEXER_PRIM_DIGIT_8:
+        case VCJSON_LEXER_PRIM_DIGIT_9:
+            *endpos = *startpos;
+            retval =
+                vcjson_scan_number(
+                    symbol, startpos, endpos, input, size, offset);
+            goto done;
+
         default:
             *endpos = *startpos;
             retval = ERROR_VCJSON_SCAN;
@@ -243,10 +296,38 @@ static bool vcjson_is_hexdigit(int symbol)
 }
 
 /**
+ * \brief Check the symbol to see if it is a digit.
+ *
+ * \param symbol        The symbol to check.
+ *
+ * \returns true if the symbol is a digit and false otherwise.
+ */
+static bool vcjson_is_digit(int symbol)
+{
+    switch (symbol)
+    {
+        case VCJSON_LEXER_PRIM_DIGIT_0:
+        case VCJSON_LEXER_PRIM_DIGIT_1:
+        case VCJSON_LEXER_PRIM_DIGIT_2:
+        case VCJSON_LEXER_PRIM_DIGIT_3:
+        case VCJSON_LEXER_PRIM_DIGIT_4:
+        case VCJSON_LEXER_PRIM_DIGIT_5:
+        case VCJSON_LEXER_PRIM_DIGIT_6:
+        case VCJSON_LEXER_PRIM_DIGIT_7:
+        case VCJSON_LEXER_PRIM_DIGIT_8:
+        case VCJSON_LEXER_PRIM_DIGIT_9:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+/**
  * \brief Attempt to scan a buffer for a string.
  *
  * \note This scanner assumes that the first quote has already been consumed,
- * and that both offset and startpos have been update to reflect this.
+ * and that both offset and startpos have been updated to reflect this.
  *
  * \param symbol        Pointer to the symbol value to set.
  * \param startpos      Pointer to be set with the start position of this
@@ -269,8 +350,6 @@ vcjson_scan_string(
     bool end_of_string = false;
     int prim;
     size_t subseq;
-
-    (void)startpos;
 
     /* scan over string. */
     do
@@ -754,7 +833,7 @@ vcjson_scan_unicode_escape_sequence(
  * \brief Attempt to scan a buffer for true.
  *
  * \note This scanner assumes that the first letter has already been consumed,
- * and that both offset and startpos have been update to reflect this.
+ * and that both offset and startpos have been updated to reflect this.
  *
  * \param symbol        Pointer to the symbol value to set.
  * \param startpos      Pointer to be set with the start position of this
@@ -816,7 +895,7 @@ vcjson_scan_true(
  * \brief Attempt to scan a buffer for false.
  *
  * \note This scanner assumes that the first letter has already been consumed,
- * and that both offset and startpos have been update to reflect this.
+ * and that both offset and startpos have been updated to reflect this.
  *
  * \param symbol        Pointer to the symbol value to set.
  * \param startpos      Pointer to be set with the start position of this
@@ -919,7 +998,7 @@ vcjson_peek_termination_character(
  * \brief Attempt to scan a buffer for null.
  *
  * \note This scanner assumes that the first letter has already been consumed,
- * and that both offset and startpos have been update to reflect this.
+ * and that both offset and startpos have been updated to reflect this.
  *
  * \param symbol        Pointer to the symbol value to set.
  * \param startpos      Pointer to be set with the start position of this
@@ -968,4 +1047,410 @@ vcjson_scan_null(
     /* success. */
     *symbol = VCJSON_LEXER_SYMBOL_NULL;
     return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Scan for an optional decimal portion of a number.
+ *
+ * \note This scanner assumes that the first digits have already been consumed,
+ * and that both offset and startpos have been updated to reflect this.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_maybe_decimal(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* peek the next primitive in the sequence. */
+    retval =
+        vcjson_scan_primitive(
+            &prim, endpos, input, size, offset, true);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* is this a decimal point? */
+    if (VCJSON_LEXER_PRIM_DOT == prim)
+    {
+        /* finish in the scan decimal method. */
+        return
+            vcjson_scan_decimal(
+                symbol, startpos, endpos, input, size, offset);
+    }
+    else if (
+        VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim
+     || VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E == prim)
+    {
+        /* finish in the scan exponent method. */
+        return
+            vcjson_scan_exponent(
+                symbol, startpos, endpos, input, size, offset);
+    }
+    else
+    {
+        /* if not, it must be a valid termination character. */
+        retval = vcjson_peek_termination_character(input, size, offset);
+        if (STATUS_SUCCESS != retval)
+        {
+            *startpos += 1;
+            *endpos = *startpos;
+            return retval;
+        }
+        else
+        {
+            /* success. */
+            *endpos = *offset - 1;
+            *symbol = VCJSON_LEXER_SYMBOL_NUMBER;
+            return STATUS_SUCCESS;
+        }
+    }
+}
+
+/**
+ * \brief Scan the decimal portion of a number.
+ *
+ * \note This scanner assumes that the decimal point been peeked but not
+ * accepted.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_decimal(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* accept the decimal point. */
+    ACCEPT_OR_FAIL(
+        VCJSON_LEXER_PRIM_DOT == prim,
+        ERROR_VCJSON_SCAN_31f9107a_1bea_44a6_84ab_e507c8fa4b6e);
+
+    /* get the next primitive. */
+    retval =
+        vcjson_scan_primitive(
+            &prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* there MUST be at least one digit after the decimal point. */
+    if (!vcjson_is_digit(prim))
+    {
+        *startpos = *endpos;
+        return ERROR_VCJSON_SCAN_64adb94e_5295_49e6_ba62_44497c8cd58f;
+    }
+
+    for (;;)
+    {
+        /* peek the next primitive in the sequence. */
+        retval =
+            vcjson_scan_primitive(
+                &prim, endpos, input, size, offset, true);
+        if (STATUS_SUCCESS != retval)
+        {
+            return retval;
+        }
+
+        /* is this a digit? */
+        if (vcjson_is_digit(prim))
+        {
+            /* accept the digit as input. */
+            ACCEPT_OR_FAIL(
+                vcjson_is_digit(prim),
+                ERROR_VCJSON_SCAN_31f9107a_1bea_44a6_84ab_e507c8fa4b6e);
+        }
+        /* is this an exponent? */
+        else if (
+            VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim
+         || VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E == prim)
+        {
+            return
+                vcjson_scan_exponent(
+                    symbol, startpos, endpos, input, size, offset);
+        }
+        else
+        {
+            /* if not, it must be a valid termination character. */
+            retval = vcjson_peek_termination_character(input, size, offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                *endpos += 1;
+                *startpos = *endpos;
+                return retval;
+            }
+            else
+            {
+                /* success. */
+                *symbol = VCJSON_LEXER_SYMBOL_NUMBER;
+                return STATUS_SUCCESS;
+            }
+        }
+    }
+}
+
+/**
+ * \brief Scan for an exponent.
+ *
+ * \note This scanner assumes that the exponent has been discovered via peek but
+ * has not yet been consumed.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_exponent(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* accept the exponent delimiter as input. */
+    ACCEPT_OR_FAIL(
+        (VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim
+         || VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E == prim),
+        ERROR_VCJSON_SCAN_96c5bf68_6cff_490d_a7f9_d5b082116050);
+
+    /* peek the next primitive in the sequence. */
+    retval =
+        vcjson_scan_primitive(
+            &prim, endpos, input, size, offset, true);
+    if (STATUS_SUCCESS != retval)
+    {
+        return retval;
+    }
+
+    /* if it's a sign, accept it. */
+    if (VCJSON_LEXER_PRIM_PLUS == prim || VCJSON_LEXER_PRIM_MINUS == prim)
+    {
+        /* accept the exponent delimiter as input. */
+        ACCEPT_OR_FAIL(
+            (VCJSON_LEXER_PRIM_PLUS == prim || VCJSON_LEXER_PRIM_MINUS == prim),
+            ERROR_VCJSON_SCAN_1b6d6898_f81d_44b3_9c16_0c5a6e4b5a1c);
+    }
+
+    /* accept a digit as input. */
+    ACCEPT_OR_FAIL(
+        vcjson_is_digit(prim),
+        ERROR_VCJSON_SCAN_1b6d6898_f81d_44b3_9c16_0c5a6e4b5a1c);
+
+    /* while there are more digits, accept them. */
+    for (;;)
+    {
+        /* peek the next primitive in the sequence. */
+        retval =
+            vcjson_scan_primitive(
+                &prim, endpos, input, size, offset, true);
+        if (STATUS_SUCCESS != retval)
+        {
+            return retval;
+        }
+
+        /* is this a digit? */
+        if (vcjson_is_digit(prim))
+        {
+            /* accept the digit as input. */
+            ACCEPT_OR_FAIL(
+                vcjson_is_digit(prim),
+                ERROR_VCJSON_SCAN_31f9107a_1bea_44a6_84ab_e507c8fa4b6e);
+        }
+        else
+        {
+            /* if not, it must be a valid termination character. */
+            retval = vcjson_peek_termination_character(input, size, offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                *endpos += 1;
+                *startpos = *endpos;
+                return retval;
+            }
+            else
+            {
+                /* success. */
+                *symbol = VCJSON_LEXER_SYMBOL_NUMBER;
+                return STATUS_SUCCESS;
+            }
+        }
+    }
+}
+
+/**
+ * \brief Scan for a number.
+ *
+ * \note This scanner assumes that the first digit of the number (1-9) has
+ * already been accepted.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_number(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    for (;;)
+    {
+        /* peek the next primitive in the sequence. */
+        retval =
+            vcjson_scan_primitive(
+                &prim, endpos, input, size, offset, true);
+        if (STATUS_SUCCESS != retval)
+        {
+            return retval;
+        }
+
+        /* is this a digit? */
+        if (vcjson_is_digit(prim))
+        {
+            /* accept the digit as input. */
+            ACCEPT_OR_FAIL(
+                vcjson_is_digit(prim),
+                ERROR_VCJSON_SCAN_31f9107a_1bea_44a6_84ab_e507c8fa4b6e);
+        }
+        /* is this a decimal place? */
+        else if (VCJSON_LEXER_PRIM_DOT == prim)
+        {
+            return
+                vcjson_scan_decimal(
+                    symbol, startpos, endpos, input, size, offset);
+        }
+        /* is this an exponent? */
+        else if (
+            VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_e == prim
+         || VCJSON_LEXER_PRIM_HEX_OR_EXPONENT_E == prim)
+        {
+            return
+                vcjson_scan_exponent(
+                    symbol, startpos, endpos, input, size, offset);
+        }
+        else
+        {
+            /* if not, it must be a valid termination character. */
+            retval = vcjson_peek_termination_character(input, size, offset);
+            if (STATUS_SUCCESS != retval)
+            {
+                *endpos += 1;
+                *startpos = *endpos;
+                return retval;
+            }
+            else
+            {
+                /* success. */
+                *symbol = VCJSON_LEXER_SYMBOL_NUMBER;
+                return STATUS_SUCCESS;
+            }
+        }
+    }
+}
+
+/**
+ * \brief Scan for a negative number.
+ *
+ * \note This scanner assumes that the negative sign has already been accepted.
+ *
+ * \param symbol        Pointer to the symbol value to set.
+ * \param startpos      Pointer to be set with the start position of this
+ *                      symbol.
+ * \param endpos        Pointer to be set with the end position of this symbol.
+ * \param input         Pointer to the input buffer to scan.
+ * \param size          The size of this input buffer.
+ * \param offset        Pointer to the current offset, to be updated on success.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status 
+vcjson_scan_negative_number(
+    int* symbol, size_t* startpos, size_t* endpos, const char* input,
+    size_t size, size_t* offset)
+{
+    status retval;
+    int prim;
+
+    /* scan for the first digit in the number. */
+    retval =
+        vcjson_scan_primitive(&prim, endpos, input, size, offset, false);
+    if (STATUS_SUCCESS != retval)
+    {
+        *startpos = *endpos;
+        return retval;
+    }
+
+    /* decode this digit. */
+    switch (prim)
+    {
+        /* handle the start of a possible decimal number. */
+        case VCJSON_LEXER_PRIM_DIGIT_0:
+            return
+                vcjson_scan_maybe_decimal(
+                    symbol, startpos, endpos, input, size, offset);
+
+        /* handle the start of a possible number. */
+        case VCJSON_LEXER_PRIM_DIGIT_1:
+        case VCJSON_LEXER_PRIM_DIGIT_2:
+        case VCJSON_LEXER_PRIM_DIGIT_3:
+        case VCJSON_LEXER_PRIM_DIGIT_4:
+        case VCJSON_LEXER_PRIM_DIGIT_5:
+        case VCJSON_LEXER_PRIM_DIGIT_6:
+        case VCJSON_LEXER_PRIM_DIGIT_7:
+        case VCJSON_LEXER_PRIM_DIGIT_8:
+        case VCJSON_LEXER_PRIM_DIGIT_9:
+            return
+                vcjson_scan_number(
+                    symbol, startpos, endpos, input, size, offset);
+
+        default:
+            *startpos = *endpos;
+            return ERROR_VCJSON_SCAN_9c0be0f4_2ac5_4713_9279_c90b672c0f5b;
+    }
 }
