@@ -48,8 +48,6 @@ vcjson_scan_primitive(
     /* get the next character in the buffer. */
     uint8_t ch = (uint8_t)input[*offset];
 
-    /* TODO - add UTF-8 decoding. */
-
     /* decode this character. */
     switch (ch)
     {

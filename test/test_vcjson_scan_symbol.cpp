@@ -2030,3 +2030,827 @@ TEST(unknown_nullp)
     /* offset should be correct. */
     TEST_EXPECT(4 == offset);
 }
+
+/**
+ * '0' is a number.
+ */
+TEST(zero_number_no_decimal_no_exponent)
+{
+    const char* INPUT = "0";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(0 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * '0e12' is a number.
+ */
+TEST(zero_number_no_decimal_with_exponent)
+{
+    const char* INPUT = "0e12";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * '0.12' is a number.
+ */
+TEST(zero_number_with_decimal_no_exponent)
+{
+    const char* INPUT = "0.12";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * '0.12e34' is a number.
+ */
+TEST(zero_number_with_decimal_with_exponent)
+{
+    const char* INPUT = "0.12e34";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(7 == offset);
+}
+
+/**
+ * '0.' is NOT a number.
+ */
+TEST(invalid_zero_dot)
+{
+    const char* INPUT = "0.";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_64adb94e_5295_49e6_ba62_44497c8cd58f
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(2 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(2 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * '0z' is NOT a number.
+ */
+TEST(invalid_0z)
+{
+    const char* INPUT = "0z";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * '0.123' is a number.
+ */
+TEST(zero_dot_number)
+{
+    const char* INPUT = "0.123";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * '0.123z' is not valid.
+ */
+TEST(invalid_decimal_bad_termination_1)
+{
+    const char* INPUT = "0.123z";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(5 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(5 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * '0.123e' is not valid.
+ */
+TEST(invalid_decimal_missing_exponent_1)
+{
+    const char* INPUT = "0.123e";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_1b6d6898_f81d_44b3_9c16_0c5a6e4b5a1c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(6 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(6 == offset);
+}
+
+/**
+ * '0.123e-' is not valid.
+ */
+TEST(invalid_decimal_missing_exponent_2)
+{
+    const char* INPUT = "0.123e-";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should fail. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_1b6d6898_f81d_44b3_9c16_0c5a6e4b5a1c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(7 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(7 == offset);
+}
+
+/**
+ * '0.123e10' is a number.
+ */
+TEST(zero_dot_number_exponent)
+{
+    const char* INPUT = "0.123e10";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(8 == offset);
+}
+
+/**
+ * '0.123e-10' is a number.
+ */
+TEST(zero_dot_number_negative_exponent)
+{
+    const char* INPUT = "0.123e-10";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(8 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(9 == offset);
+}
+
+/**
+ * '0.123e+10' is a number.
+ */
+TEST(zero_dot_number_positive_exponent)
+{
+    const char* INPUT = "0.123e+10";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(8 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(9 == offset);
+}
+
+/**
+ * '0.123e+10x' is an invalid token.
+ */
+TEST(invalid_decimal_bad_termination_2)
+{
+    const char* INPUT = "0.123e+10x";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(9 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(9 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(9 == offset);
+}
+
+/**
+ * '1' is a valid number.
+ */
+TEST(one_number)
+{
+    const char* INPUT = "1";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(0 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
+
+/**
+ * '1234' is a valid number.
+ */
+TEST(multidigit_number_no_decimal_no_exponent)
+{
+    const char* INPUT = "1234";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(3 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * '1234z' is not a valid token.
+ */
+TEST(multidigit_number_invalid_termination)
+{
+    const char* INPUT = "1234z";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_299d80db_2eec_4ed3_9717_1b3ecd188c4c
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(4 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(4 == offset);
+}
+
+/**
+ * '1234e56' is a valid number.
+ */
+TEST(multidigit_number_no_decimal_with_exponent)
+{
+    const char* INPUT = "1234e56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(7 == offset);
+}
+
+/**
+ * '1234.56' is a valid number.
+ */
+TEST(multidigit_number_with_decimal_no_exponent)
+{
+    const char* INPUT = "1234.56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(6 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(7 == offset);
+}
+
+/**
+ * '1234.56e78' is a valid number.
+ */
+TEST(multidigit_number_with_decimal_with_exponent)
+{
+    const char* INPUT = "1234.56e78";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(9 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(10 == offset);
+}
+
+/**
+ * '-1' is a valid number.
+ */
+TEST(negative_one_number)
+{
+    const char* INPUT = "-1";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * '-1234' is a valid number.
+ */
+TEST(negative_number_no_decimal_no_exponent)
+{
+    const char* INPUT = "-1234";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * '-1234e56' is a valid number.
+ */
+TEST(negative_number_no_decimal_with_exponent)
+{
+    const char* INPUT = "-1234e56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(8 == offset);
+}
+
+/**
+ * '-1234.56' is a valid number.
+ */
+TEST(negative_number_with_decimal_no_exponent)
+{
+    const char* INPUT = "-1234.56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(8 == offset);
+}
+
+/**
+ * '-1234.56e78' is a valid number.
+ */
+TEST(negative_number_with_decimal_with_exponent)
+{
+    const char* INPUT = "-1234.56e78";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(10 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(11 == offset);
+}
+
+/**
+ * '-0' is a valid number.
+ */
+TEST(negative_zero_no_decimal_no_exponent)
+{
+    const char* INPUT = "-0";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(2 == offset);
+}
+
+/**
+ * '-0e56' is a valid number.
+ */
+TEST(negative_zero_no_decimal_with_exponent)
+{
+    const char* INPUT = "-0e56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * '-0.56' is a valid number.
+ */
+TEST(negative_zero_with_decimal_no_exponent)
+{
+    const char* INPUT = "-0.56";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(4 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(5 == offset);
+}
+
+/**
+ * '-0.56e78' is a valid number.
+ */
+TEST(negative_zero_with_decimal_with_exponent)
+{
+    const char* INPUT = "-0.56e78";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* symbol is NUMBER. */
+    TEST_EXPECT(VCJSON_LEXER_SYMBOL_NUMBER == symbol);
+    /* startpos is correct. */
+    TEST_EXPECT(0 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(7 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(8 == offset);
+}
+
+/**
+ * '-' is an invalid token.
+ */
+TEST(dash)
+{
+    const char* INPUT = "-";
+    size_t size = strlen(INPUT);
+    int symbol = -1;
+    size_t startpos = 100;
+    size_t endpos = 100;
+    size_t offset = 0;
+
+    /* scanning for a symbol should succeed. */
+    TEST_ASSERT(
+        ERROR_VCJSON_SCAN_9c0be0f4_2ac5_4713_9279_c90b672c0f5b
+            == vcjson_scan_symbol(
+                    &symbol, &startpos, &endpos, INPUT, size, &offset));
+
+    /* startpos is correct. */
+    TEST_EXPECT(1 == startpos);
+    /* endpos is correct. */
+    TEST_EXPECT(1 == endpos);
+    /* offset should be correct. */
+    TEST_EXPECT(1 == offset);
+}
