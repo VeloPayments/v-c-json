@@ -31,7 +31,7 @@ TEST(vcjson_parse_empty_string)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing an empty string causes a parse error. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, ""));
@@ -62,7 +62,7 @@ TEST(vcjson_parse_true)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "true"));
@@ -97,7 +97,7 @@ TEST(vcjson_parse_true_whitespace)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "  true\n\t "));
@@ -131,7 +131,7 @@ TEST(vcjson_parse_true_true)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing multiple symbols fails. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         ERROR_VCJSON_PARSE_b87aa047_46c8_453c_aa3c_bb7c1dd70402
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "true true"));
@@ -160,7 +160,7 @@ TEST(vcjson_parse_false)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "false"));
@@ -195,7 +195,7 @@ TEST(vcjson_parse_false_whitespace)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "  false\n\t "));
@@ -229,7 +229,7 @@ TEST(vcjson_parse_false_true)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing multiple symbols fails. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         ERROR_VCJSON_PARSE_b87aa047_46c8_453c_aa3c_bb7c1dd70402
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "false true"));
@@ -257,7 +257,7 @@ TEST(vcjson_parse_null)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "null"));
@@ -288,7 +288,7 @@ TEST(vcjson_parse_null_whitespace)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "  null\n\t "));
@@ -319,7 +319,7 @@ TEST(vcjson_parse_null_true)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing multiple symbols fails. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         ERROR_VCJSON_PARSE_b87aa047_46c8_453c_aa3c_bb7c1dd70402
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, "null true"));
@@ -348,7 +348,7 @@ TEST(vcjson_parse_empty_string_value)
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
     /* parsing succeeds. */
-    TEST_EXPECT(
+    TEST_ASSERT(
         STATUS_SUCCESS
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, R"("")"));
@@ -364,6 +364,88 @@ TEST(vcjson_parse_empty_string_value)
     const char* str = vcjson_string_value(stringvalue, &length);
     TEST_ASSERT(length == 1);
     TEST_EXPECT(!memcmp("", str, length));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse a simple string.
+ */
+TEST(vcjson_parse_simple_string_value)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_string* stringvalue = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"("test string")";
+    const char* EXPECTED_STRING = "test string";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is string. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(value));
+    /* get the string value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringvalue, value));
+    /* the string value should be empty. */
+    size_t length;
+    const char* str = vcjson_string_value(stringvalue, &length);
+    TEST_ASSERT(length - 1 == strlen(EXPECTED_STRING));
+    TEST_EXPECT(!memcmp(EXPECTED_STRING, str, length));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse a string with escape values.
+ */
+TEST(vcjson_parse_simple_escape_string_value)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_string* stringvalue = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"("tab\t newline\n cr\r quote\"\\\/\b\f")";
+    const char* EXPECTED_STRING = "tab\t newline\n cr\r quote\"\\/\b\f";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is string. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(value));
+    /* get the string value. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringvalue, value));
+    /* the string value should be empty. */
+    size_t length;
+    const char* str = vcjson_string_value(stringvalue, &length);
+    TEST_ASSERT(length - 1 == strlen(EXPECTED_STRING));
+    TEST_EXPECT(!memcmp(EXPECTED_STRING, str, length));
 
     /* clean up. */
     TEST_ASSERT(STATUS_SUCCESS
