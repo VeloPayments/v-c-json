@@ -171,7 +171,10 @@ TEST(value_string_basics)
     TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringval, value));
 
     /* this string value is our expected value. */
-    TEST_EXPECT(0 == strcmp(EXPECTED_VALUE, vcjson_string_value(stringval)));
+    size_t length;
+    const char* str = vcjson_string_value(stringval, &length);
+    TEST_ASSERT(length - 1 == strlen(EXPECTED_VALUE));
+    TEST_EXPECT(0 == memcmp(EXPECTED_VALUE, str, length));
 
     /* clean up. */
     resource_release(vcjson_value_resource_handle(value));

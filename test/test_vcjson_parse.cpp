@@ -360,7 +360,10 @@ TEST(vcjson_parse_empty_string_value)
     /* get the string value. */
     TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&stringvalue, value));
     /* the string value should be empty. */
-    TEST_EXPECT(!strcmp("", vcjson_string_value(stringvalue)));
+    size_t length;
+    const char* str = vcjson_string_value(stringvalue, &length);
+    TEST_ASSERT(length == 1);
+    TEST_EXPECT(!memcmp("", str, length));
 
     /* clean up. */
     TEST_ASSERT(STATUS_SUCCESS

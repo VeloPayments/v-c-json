@@ -18,10 +18,14 @@
  * that instance.
  *
  * \param string        The string instance for this operation.
+ * \param length        Pointer to receive the length of the string, including
+ *                      ASCII zero for non-raw strings.
  *
  * \returns the string value for this instance.
  */
-const char* vcjson_string_value(const vcjson_string* string)
+const char* vcjson_string_value(const vcjson_string* string, size_t* length)
 {
+    *length = string->length;
+
     return string->value;
 }

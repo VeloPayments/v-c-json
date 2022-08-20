@@ -37,52 +37,8 @@ status FN_DECL_MUST_CHECK
 vcjson_string_create(
     vcjson_string** string, RCPR_SYM(allocator)* alloc, const char* value)
 {
-    status retval, release_retval;
-    vcjson_string* tmp;
-
     /* get the length of the string. */
-    size_t length = strlen(value);
+    size_t length = strlen(value) + 1;
 
-    /* allocate memory for the string instance. */
-    retval = allocator_allocate(alloc, (void**)&tmp, sizeof(*tmp));
-    if (STATUS_SUCCESS != retval)
-    {
-        goto done;
-    }
-
-    /* clear instance. */
-    memset(tmp, 0, sizeof(*tmp));
-
-    /* initialize resource. */
-    resource_init(&tmp->hdr, &vcjson_string_resource_release);
-
-    /* set initial values. */
-    tmp->alloc = alloc;
-    tmp->length = length;
-
-    /* allocate memory for string. */
-    retval = allocator_allocate(alloc, (void**)&tmp->value, length + 1);
-    if (STATUS_SUCCESS != retval)
-    {
-        goto cleanup_tmp;
-    }
-
-    /* copy string. */
-    memcpy(tmp->value, value, length);
-    tmp->value[length] = 0;
-
-    /* success. */
-    *string = tmp;
-    retval = STATUS_SUCCESS;
-    goto done;
-
-cleanup_tmp:
-    release_retval = resource_release(&tmp->hdr);
-    if (STATUS_SUCCESS != release_retval)
-    {
-        retval = release_retval;
-    }
-
-done:
-    return retval;
+    return vcjson_string_create_from_raw(string, alloc, value, length);
 }

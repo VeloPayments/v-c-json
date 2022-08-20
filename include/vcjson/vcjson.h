@@ -514,6 +514,31 @@ vcjson_string_create(
     vcjson_string** string, RCPR_SYM(allocator)* alloc, const char* value);
 
 /**
+ * \brief Create a \ref vcjson_string instance using the given allocator and
+ * raw string value.
+ *
+ * \note On success, this function creates a \ref vcjson_string instance. This
+ * is a resource that is owned by the caller. When no longer needed, this
+ * resource must be released by calling \ref resource_release on its resource
+ * handle.
+ *
+ * \param string        Pointer to the string pointer to hold this value.
+ * \param alloc         The allocator to use for this operation.
+ * \param value         The raw string value to be used for this instance. This
+ *                      value is copied; the original value is assumed owned by
+ *                      the caller.
+ * \param size          The size of this raw string value.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_string_create_from_raw(
+    vcjson_string** string, RCPR_SYM(allocator)* alloc, const char* value,
+    size_t size);
+
+/**
  * \brief Make a deep copy of the given \ref vcjson_string instance.
  *
  * \note On success, this function creates a \ref vcjson_string instance. This
@@ -542,10 +567,12 @@ vcjson_string_copy(
  * that instance.
  *
  * \param string        The string instance for this operation.
+ * \param length        Pointer to receive the length of the string, including
+ *                      ASCII zero for non-raw strings.
  *
  * \returns the string value for this instance.
  */
-const char* vcjson_string_value(const vcjson_string* string);
+const char* vcjson_string_value(const vcjson_string* string, size_t* length);
 
 /**
  * \brief Get the resource handle for the given \ref vcjson_string instance.
