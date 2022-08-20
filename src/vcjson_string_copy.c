@@ -33,5 +33,5 @@ vcjson_string_copy(
     const vcjson_string* orig)
 {
     return
-        vcjson_string_create(string, alloc, orig->value);
+        vcjson_string_create_from_raw(string, alloc, orig->value, orig->length);
 }

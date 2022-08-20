@@ -79,7 +79,10 @@ TEST(copy_string)
     TEST_EXPECT(stringval != copyval);
 
     /* the copy's value should be our expected value. */
-    TEST_EXPECT(0 == strcmp(EXPECTED_VALUE, vcjson_string_value(copyval)));
+    size_t length;
+    const char* str = vcjson_string_value(copyval, &length);
+    TEST_ASSERT(length -1 == strlen(EXPECTED_VALUE));
+    TEST_EXPECT(0 == memcmp(EXPECTED_VALUE, str, length));
 
     /* clean up. */
     resource_release(vcjson_string_resource_handle(stringval));
