@@ -33,7 +33,8 @@ RCPR_IMPORT_rbtree;
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_iterator_value(
-    const char** key, vcjson_value** value, vcjson_object_iterator* iterator)
+    const vcjson_string** key, vcjson_value** value,
+    vcjson_object_iterator* iterator)
 {
     vcjson_object_element* elem = NULL;
 

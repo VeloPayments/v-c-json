@@ -18,9 +18,10 @@ RCPR_IMPORT_resource;
 /**
  * \brief Put a value into the given \ref vcjson_object instance.
  *
- * \note On success, the \ref vcjson_object assumes ownership of this value. If
- * there is already a value associated with the given key, its resource is
- * released via \ref resource_release.
+ * \note On success, the \ref vcjson_object assumes ownership of the key and
+ * value. If there is already a value associated with the given key,
+ * its resource is released via \ref resource_release, as is the provided key's
+ * resource.
  *
  * \param obj           The object instance for this operation.
  * \param key           The key for this operation.
@@ -32,7 +33,7 @@ RCPR_IMPORT_resource;
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_put(
-    vcjson_object* obj, const char* key, vcjson_value* value)
+    vcjson_object* obj, vcjson_string* key, vcjson_value* value)
 {
     status retval, release_retval;
     vcjson_object_element* elem;
@@ -56,18 +57,8 @@ vcjson_object_put(
 
         /* set initial values. */
         elem->alloc = obj->alloc;
-
-        /* allocate memory for the key. */
-        size_t len = strlen(key);
-        retval = allocator_allocate(obj->alloc, (void**)&elem->key, len + 1);
-        if (STATUS_SUCCESS != retval)
-        {
-            goto cleanup_elem;
-        }
-
-        /* copy the key. */
-        memcpy(elem->key, key, len);
-        elem->key[len] = 0;
+        elem->owns_key = false;
+        elem->key = key;
 
         /* insert this key into the tree. */
         retval = rbtree_insert(obj->elements, &elem->hdr);
@@ -84,6 +75,16 @@ vcjson_object_put(
         {
             goto done;
         }
+
+        /* release the old key if it's found. */
+        retval = resource_release(&elem->key->hdr);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto done;
+        }
+
+        /* set the new key. */
+        elem->key = key;
     }
     else
     {
@@ -92,6 +93,7 @@ vcjson_object_put(
 
     /* set the element value. */
     elem->value = value;
+    elem->owns_key = true;
 
     /* success. */
     retval = STATUS_SUCCESS;

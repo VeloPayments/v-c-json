@@ -52,6 +52,8 @@ TEST(vcjson_object_get_put)
     allocator* alloc = nullptr;
     vcjson_object* object = nullptr;
     vcjson_value* val = nullptr;
+    vcjson_string* keystr = nullptr;
+    vcjson_string* keystr_copy = nullptr;
     const char* EXPECTED_KEY = "test key";
 
     /* create a malloc allocator. */
@@ -64,11 +66,19 @@ TEST(vcjson_object_get_put)
     /* the number of elements in this empty object is zero. */
     TEST_EXPECT(0 == vcjson_object_elements(object));
 
+    /* create the key string. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == vcjson_string_create(&keystr, alloc, EXPECTED_KEY));
+
+    /* copy this key string for the put. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == vcjson_string_copy(&keystr_copy, alloc, keystr));
+
     /* if we get the expected key, we should get an error because the key is not
      * yet set. */
     TEST_ASSERT(
         ERROR_VCJSON_KEY_NOT_FOUND
-            == vcjson_object_get(&val, object, EXPECTED_KEY));
+            == vcjson_object_get(&val, object, keystr));
 
     /* create a true value. */
     TEST_ASSERT(
@@ -76,7 +86,7 @@ TEST(vcjson_object_get_put)
 
     /* put the given value using the given key. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+        STATUS_SUCCESS == vcjson_object_put(object, keystr_copy, val));
 
     /* the value is now owned by the object. */
     val = nullptr;
@@ -86,12 +96,15 @@ TEST(vcjson_object_get_put)
 
     /* the get should now succeed. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_get(&val, object, EXPECTED_KEY));
+        STATUS_SUCCESS == vcjson_object_get(&val, object, keystr));
 
     /* the value should be our boolean value. */
     TEST_EXPECT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(val));
 
     /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_string_resource_handle(keystr)));
     TEST_ASSERT(
         STATUS_SUCCESS
             == resource_release(vcjson_object_resource_handle(object)));
@@ -110,6 +123,8 @@ TEST(vcjson_object_get_put_replace)
     vcjson_value* val = nullptr;
     vcjson_bool* boolval = nullptr;
     const char* EXPECTED_KEY = "test key";
+    vcjson_string* keystr = nullptr;
+    vcjson_string* keystr_copy = nullptr;
 
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
@@ -122,9 +137,17 @@ TEST(vcjson_object_get_put_replace)
     TEST_ASSERT(
         STATUS_SUCCESS == vcjson_value_create_from_true(&val, alloc));
 
+    /* create a key string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_create(&keystr, alloc, EXPECTED_KEY));
+
+    /* copy the key string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_copy(&keystr_copy, alloc, keystr));
+
     /* put the given value using the given key. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+        STATUS_SUCCESS == vcjson_object_put(object, keystr_copy, val));
 
     /* the value is now owned by the object. */
     val = nullptr;
@@ -133,16 +156,20 @@ TEST(vcjson_object_get_put_replace)
     TEST_ASSERT(
         STATUS_SUCCESS == vcjson_value_create_from_false(&val, alloc));
 
+    /* copy the key string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_copy(&keystr_copy, alloc, keystr));
+
     /* put the given value using the given key. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+        STATUS_SUCCESS == vcjson_object_put(object, keystr_copy, val));
 
     /* the value is now owned by the object. */
     val = nullptr;
 
     /* the get should succeed. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_get(&val, object, EXPECTED_KEY));
+        STATUS_SUCCESS == vcjson_object_get(&val, object, keystr));
 
     /* get the boolean value. */
     TEST_ASSERT(
@@ -152,6 +179,9 @@ TEST(vcjson_object_get_put_replace)
     TEST_EXPECT(VCJSON_FALSE == boolval);
 
     /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_string_resource_handle(keystr)));
     TEST_ASSERT(
         STATUS_SUCCESS
             == resource_release(vcjson_object_resource_handle(object)));
@@ -169,6 +199,8 @@ TEST(vcjson_object_remove)
     vcjson_object* object = nullptr;
     vcjson_value* val = nullptr;
     const char* EXPECTED_KEY = "test key";
+    vcjson_string* keystr = nullptr;
+    vcjson_string* keystr_copy = nullptr;
 
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
@@ -181,9 +213,17 @@ TEST(vcjson_object_remove)
     TEST_ASSERT(
         STATUS_SUCCESS == vcjson_value_create_from_true(&val, alloc));
 
+    /* create a key string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_create(&keystr, alloc, EXPECTED_KEY));
+
+    /* copy the key string for the put operation. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_copy(&keystr_copy, alloc, keystr));
+
     /* put the given value using the given key. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+        STATUS_SUCCESS == vcjson_object_put(object, keystr_copy, val));
 
     /* the value is now owned by the object. */
     val = nullptr;
@@ -192,17 +232,19 @@ TEST(vcjson_object_remove)
     TEST_EXPECT(1 == vcjson_object_elements(object));
 
     /* remove this key. */
-    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_remove(object, EXPECTED_KEY));
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_remove(object, keystr));
 
     /* the number of elements in this object is now zero. */
     TEST_EXPECT(0 == vcjson_object_elements(object));
 
     /* the get should fail. */
     TEST_ASSERT(
-        ERROR_VCJSON_KEY_NOT_FOUND
-            == vcjson_object_get(&val, object, EXPECTED_KEY));
+        ERROR_VCJSON_KEY_NOT_FOUND == vcjson_object_get(&val, object, keystr));
 
     /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_string_resource_handle(keystr)));
     TEST_ASSERT(
         STATUS_SUCCESS
             == resource_release(vcjson_object_resource_handle(object)));
@@ -220,6 +262,8 @@ TEST(vcjson_object_clear)
     vcjson_object* object = nullptr;
     vcjson_value* val = nullptr;
     const char* EXPECTED_KEY = "test key";
+    vcjson_string* keystr = nullptr;
+    vcjson_string* keystr_copy = nullptr;
 
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
@@ -232,9 +276,17 @@ TEST(vcjson_object_clear)
     TEST_ASSERT(
         STATUS_SUCCESS == vcjson_value_create_from_true(&val, alloc));
 
+    /* create a key string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_create(&keystr, alloc, EXPECTED_KEY));
+
+    /* copy the key string for the put operation. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_string_copy(&keystr_copy, alloc, keystr));
+
     /* put the given value using the given key. */
     TEST_ASSERT(
-        STATUS_SUCCESS == vcjson_object_put(object, EXPECTED_KEY, val));
+        STATUS_SUCCESS == vcjson_object_put(object, keystr_copy, val));
 
     /* the value is now owned by the object. */
     val = nullptr;
@@ -251,9 +303,12 @@ TEST(vcjson_object_clear)
     /* the get should fail. */
     TEST_ASSERT(
         ERROR_VCJSON_KEY_NOT_FOUND
-            == vcjson_object_get(&val, object, EXPECTED_KEY));
+            == vcjson_object_get(&val, object, keystr));
 
     /* clean up. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == resource_release(vcjson_string_resource_handle(keystr)));
     TEST_ASSERT(
         STATUS_SUCCESS
             == resource_release(vcjson_object_resource_handle(object)));
@@ -272,7 +327,8 @@ TEST(vcjson_object_iterate)
     vcjson_value* val = nullptr;
     vcjson_number* number = nullptr;
     vcjson_object_iterator* iter = nullptr;
-    const char* ikey = nullptr;
+    vcjson_string* keystr = nullptr;
+    const vcjson_string* ikey = nullptr;
     char key[20];
 
     /* create a malloc allocator. */
@@ -288,6 +344,9 @@ TEST(vcjson_object_iterate)
         /* create the key. */
         snprintf(key, sizeof(key), "%d", i);
 
+        /* create a key string for putting. */
+        TEST_ASSERT(
+            STATUS_SUCCESS == vcjson_string_create(&keystr, alloc, key));
         /* create a number. */
         TEST_ASSERT(STATUS_SUCCESS == vcjson_number_create(&number, alloc, i));
 
@@ -297,7 +356,7 @@ TEST(vcjson_object_iterate)
                 == vcjson_value_create_from_number(&val, alloc, number));
 
         /* put this value in the object. */
-        TEST_ASSERT(STATUS_SUCCESS == vcjson_object_put(object, key, val));
+        TEST_ASSERT(STATUS_SUCCESS == vcjson_object_put(object, keystr, val));
     }
 
     /* create the iterator. */
@@ -311,10 +370,15 @@ TEST(vcjson_object_iterate)
 
         /* key the key-value pair from the iterator. */
         TEST_ASSERT(
-            STATUS_SUCCESS == vcjson_object_iterator_value(&ikey, &val, iter));
+            STATUS_SUCCESS
+                == vcjson_object_iterator_value(&ikey, &val, iter));
+
+        /* key the key value. */
+        size_t length;
+        const char* keyval = vcjson_string_value(ikey, &length);
 
         /* the keys should match. */
-        TEST_EXPECT(0 == strcmp(key, ikey));
+        TEST_EXPECT(0 == strcmp(key, keyval));
 
         /* the value type should be a number. */
         TEST_ASSERT(VCJSON_VALUE_TYPE_NUMBER == vcjson_value_type(val));

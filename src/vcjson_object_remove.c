@@ -30,7 +30,7 @@ RCPR_IMPORT_rbtree;
  *      - a non-zero error code on failure.
  */
 status FN_DECL_MUST_CHECK
-vcjson_object_remove(vcjson_object* obj, const char* key)
+vcjson_object_remove(vcjson_object* obj, const vcjson_string* key)
 {
     status retval;
 

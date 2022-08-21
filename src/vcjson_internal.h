@@ -67,8 +67,9 @@ struct vcjson_object_element
 {
     RCPR_SYM(resource) hdr;
     RCPR_SYM(allocator)* alloc;
-    char* key;
+    vcjson_string* key;
     vcjson_value* value;
+    bool owns_key;
 };
 
 struct vcjson_object_iterator

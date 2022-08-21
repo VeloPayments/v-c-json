@@ -23,7 +23,7 @@ RCPR_IMPORT_resource;
 status FN_DECL_MUST_CHECK
 vcjson_object_element_resource_release(RCPR_SYM(resource)* r)
 {
-    status key_reclaim_retval = STATUS_SUCCESS;
+    status key_release_retval = STATUS_SUCCESS;
     status value_release_retval = STATUS_SUCCESS;
     status reclaim_retval = STATUS_SUCCESS;
     vcjson_object_element* elem = (vcjson_object_element*)r;
@@ -32,14 +32,9 @@ vcjson_object_element_resource_release(RCPR_SYM(resource)* r)
     allocator* alloc = elem->alloc;
 
     /* if the key is set, reclaim it. */
-    if (NULL != elem->key)
+    if (NULL != elem->key && elem->owns_key)
     {
-        /* clear key. */
-        size_t key_len = strlen(elem->key);
-        memset(elem->key, 0, key_len);
-
-        /* reclaim key memory. */
-        key_reclaim_retval = allocator_reclaim(alloc, elem->key);
+        key_release_retval = resource_release(&elem->key->hdr);
     }
 
     /* if the value is set, release it. */
@@ -55,9 +50,9 @@ vcjson_object_element_resource_release(RCPR_SYM(resource)* r)
     reclaim_retval = allocator_reclaim(alloc, elem);
 
     /* decode return value. */
-    if (STATUS_SUCCESS != key_reclaim_retval)
+    if (STATUS_SUCCESS != key_release_retval)
     {
-        return key_reclaim_retval;
+        return key_release_retval;
     }
     else if (STATUS_SUCCESS != value_release_retval)
     {

@@ -173,7 +173,7 @@ TEST(value_string_basics)
     /* this string value is our expected value. */
     size_t length;
     const char* str = vcjson_string_value(stringval, &length);
-    TEST_ASSERT(length - 1 == strlen(EXPECTED_VALUE));
+    TEST_ASSERT(length == strlen(EXPECTED_VALUE));
     TEST_EXPECT(0 == memcmp(EXPECTED_VALUE, str, length));
 
     /* clean up. */

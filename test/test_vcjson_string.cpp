@@ -34,7 +34,7 @@ TEST(vcjson_string_create_basics)
     /* the string value is equal to EXPECTED_VALUE. */
     size_t length;
     const char* str = vcjson_string_value(string, &length);
-    TEST_ASSERT(length - 1 == strlen(EXPECTED_VALUE));
+    TEST_ASSERT(length == strlen(EXPECTED_VALUE));
     TEST_EXPECT(0 == memcmp(EXPECTED_VALUE, str, length));
 
     /* clean up. */

@@ -33,7 +33,7 @@ RCPR_IMPORT_resource;
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_get(
-    vcjson_value** value, vcjson_object* obj, const char* key)
+    vcjson_value** value, vcjson_object* obj, const vcjson_string* key)
 {
     status retval;
     vcjson_object_element* elem;

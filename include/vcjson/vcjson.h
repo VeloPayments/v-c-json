@@ -177,9 +177,10 @@ size_t vcjson_object_elements(const vcjson_object* obj);
 /**
  * \brief Put a value into the given \ref vcjson_object instance.
  *
- * \note On success, the \ref vcjson_object assumes ownership of this value. If
- * there is already a value associated with the given key, its resource is
- * released via \ref resource_release.
+ * \note On success, the \ref vcjson_object assumes ownership of the key and
+ * value. If there is already a value associated with the given key,
+ * its resource is released via \ref resource_release, as is the provided key's
+ * resource.
  *
  * \param obj           The object instance for this operation.
  * \param key           The key for this operation.
@@ -191,7 +192,7 @@ size_t vcjson_object_elements(const vcjson_object* obj);
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_put(
-    vcjson_object* obj, const char* key, vcjson_value* value);
+    vcjson_object* obj, vcjson_string* key, vcjson_value* value);
 
 /**
  * \brief Get a value from the object using the given key.
@@ -212,7 +213,7 @@ vcjson_object_put(
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_get(
-    vcjson_value** value, vcjson_object* obj, const char* key);
+    vcjson_value** value, vcjson_object* obj, const vcjson_string* key);
 
 /**
  * \brief Remove the given key from the object.
@@ -231,7 +232,7 @@ vcjson_object_get(
  *      - a non-zero error code on failure.
  */
 status FN_DECL_MUST_CHECK
-vcjson_object_remove(vcjson_object* obj, const char* key);
+vcjson_object_remove(vcjson_object* obj, const vcjson_string* key);
 
 /**
  * \brief Clear the given object of all key-value pairs.
@@ -314,7 +315,8 @@ vcjson_object_iterator_next(vcjson_object_iterator* iterator);
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_iterator_value(
-    const char** key, vcjson_value** value, vcjson_object_iterator* iterator);
+    const vcjson_string** key, vcjson_value** value,
+    vcjson_object_iterator* iterator);
 
 /**
  * \brief Get the resource handle for the given \ref vcjson_object instance.
