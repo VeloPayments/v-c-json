@@ -491,3 +491,6 @@ TEST(vcjson_parse_simple_escape_string_value)
     TEST_ASSERT(STATUS_SUCCESS
         == resource_release(allocator_resource_handle(alloc)));
 }
+
+/* TODO - add unit test for basic \u escape values. */
+/* TODO - add unit test for basic \u escape surrogate pairs. */
