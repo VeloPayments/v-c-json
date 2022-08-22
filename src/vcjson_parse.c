@@ -6,6 +6,7 @@
  * \copyright 2022 Velo Payments, Inc.  All rights reserved.
  */
 
+#include <rcpr/slist.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vcjson/vcjson.h>
@@ -14,6 +15,7 @@
 
 RCPR_IMPORT_allocator;
 RCPR_IMPORT_resource;
+RCPR_IMPORT_slist;
 
 /* forward decls. */
 static status
@@ -48,6 +50,13 @@ static status
     vcjson_read_value_object_member(
         vcjson_object* obj, size_t* error_begin, size_t* error_end,
         allocator* alloc, const char* input, size_t size, size_t* offset);
+static status
+    vcjson_read_value_array(
+        vcjson_value** value, size_t* error_begin, size_t* error_end,
+        allocator* alloc, const char* input, size_t size, size_t* offset);
+static status
+    vcjson_read_array_from_list(
+        vcjson_value** value, allocator* alloc, slist* list);
 static status
     vcjson_read_value_number(
         vcjson_value** value, size_t* error_begin, size_t* error_end,
@@ -530,6 +539,12 @@ static status
                 vcjson_read_value_object(
                     value, error_begin, error_end, alloc, input, size, offset);
 
+        /* read an array. */
+        case VCJSON_LEXER_PRIM_LEFT_BRACKET:
+            return
+                vcjson_read_value_array(
+                    value, error_begin, error_end, alloc, input, size, offset);
+
         /* an unknown symbol was encountered. */
         default:
             return ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090;
@@ -709,15 +724,27 @@ static status
         {
             /* this is the end of the object. */
             case VCJSON_LEXER_PRIM_RIGHT_BRACE:
-                retval = vcjson_value_create_from_object(value, alloc, obj);
-                if (STATUS_SUCCESS != retval)
+                /* if the object is empty or the last member did not have a
+                 * comma. */
+                if (vcjson_object_elements(obj) == 0 || expecting_comma)
                 {
+                    retval = vcjson_value_create_from_object(value, alloc, obj);
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        goto cleanup_obj;
+                    }
+
+                    /* success. */
+                    retval = STATUS_SUCCESS;
+                    goto done;
+                }
+                else
+                {
+                    /* we have a dangling comma. */
+                    retval =
+                        ERROR_VCJSON_PARSE_69c86e4f_d981_402d_a4fd_c051b97e821a;
                     goto cleanup_obj;
                 }
-
-                /* success. */
-                retval = STATUS_SUCCESS;
-                goto done;
 
             /* this is the start of a member. */
             case VCJSON_LEXER_SYMBOL_STRING:
@@ -858,6 +885,254 @@ cleanup_elemvalue:
 
 cleanup_elemkey:
     release_retval = resource_release(vcjson_string_resource_handle(elemkey));
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
+done:
+    return retval;
+}
+
+/**
+ * \brief Create an array value from input.
+ *
+ * \param value         Pointer to the value pointer to hold the JSON value on
+ *                      success.
+ * \param error_begin   Pointer to receive the start of an error location on
+ *                      failure.
+ * \param error_end     Pointer to receive the end of an error location on
+ *                      failure.
+ * \param alloc         The allocator to use for this operation.
+ * \param input         The input UTF-8 character buffer.
+ * \param size          The size of this buffer.
+ * \param offset        The current offset in the input buffer.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+    vcjson_read_value_array(
+        vcjson_value** value, size_t* error_begin, size_t* error_end,
+        allocator* alloc, const char* input, size_t size, size_t* offset)
+{
+    status retval, release_retval;
+    int symbol;
+    vcjson_value* elemval;
+    bool expecting_comma = false;
+    slist* list;
+    size_t primpos;
+
+    /* create an slist instance for holding array values. */
+    retval = slist_create(&list, alloc);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* iterate through the array. */
+    for (;;)
+    {
+        /* peek at a primitive. */
+        retval =
+            vcjson_scan_primitive(&symbol, &primpos, input, size, offset, true);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_list;
+        }
+
+        /* decode the primitive. */
+        switch (symbol)
+        {
+            case VCJSON_LEXER_PRIM_COMMA:
+                if (expecting_comma)
+                {
+                    retval =
+                        vcjson_scan_symbol(
+                            &symbol, error_begin, error_end, input, size,
+                            offset);
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        goto cleanup_list;
+                    }
+
+                    /* verify that we scanned the comma. */
+                    if (VCJSON_LEXER_PRIM_COMMA != symbol)
+                    {
+                        retval =
+                        ERROR_VCJSON_PARSE_f13a1abe_698e_4ff3_b5e7_70ac83eb1d4f;
+                        goto cleanup_list;
+                    }
+
+                    expecting_comma = false;
+                }
+                else
+                {
+                    retval =
+                        ERROR_VCJSON_PARSE_4b143e34_8ab5_4a34_b79c_905f66b62511;
+                    goto cleanup_list;
+                }
+                break;
+
+            case VCJSON_LEXER_PRIM_RIGHT_BRACKET:
+                retval =
+                    vcjson_scan_symbol(
+                        &symbol, error_begin, error_end, input, size, offset);
+                if (STATUS_SUCCESS != retval)
+                {
+                    goto cleanup_list;
+                }
+
+                /* verify that we scanned the bracket. */
+                if (VCJSON_LEXER_PRIM_RIGHT_BRACKET != symbol)
+                {
+                    retval =
+                        ERROR_VCJSON_PARSE_f13a1abe_698e_4ff3_b5e7_70ac83eb1d4f;
+                    goto cleanup_list;
+                }
+
+                /* if this is an empty array or there was no comma after the
+                 * last element, then this is valid. */
+                if (slist_count(list) == 0 || expecting_comma)
+                {
+                    /* create an array value from this list. */
+                    retval = vcjson_read_array_from_list(value, alloc, list);
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        goto cleanup_list;
+                    }
+
+                    /* success. */
+                    retval = STATUS_SUCCESS;
+                    goto cleanup_list;
+                }
+                else
+                {
+                    /* we have a hanging comma. */
+                    retval =
+                        ERROR_VCJSON_PARSE_e02e6452_eedc_4049_aad0_f79cbf7442a2;
+                    goto cleanup_list;
+                }
+
+            default:
+                if (expecting_comma)
+                {
+                    return
+                        ERROR_VCJSON_PARSE_da3c5b50_0456_4acd_904b_2a72464e59ae;
+                }
+                else
+                {
+                    /* try to read a value from input. */
+                    retval =
+                        vcjson_read_value(
+                            &elemval, error_begin, error_end, alloc, input,
+                            size, offset);
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        retval =
+                        ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a;
+                        goto cleanup_list;
+                    }
+
+                    /* append this value to the end of the list. */
+                    retval = slist_append_tail(list, &elemval->hdr);
+                    if (STATUS_SUCCESS != retval)
+                    {
+                        goto cleanup_list;
+                    }
+
+                    /* we now need a comma. */
+                    expecting_comma = true;
+                }
+                break;
+        }
+    }
+
+cleanup_list:
+    release_retval = resource_release(slist_resource_handle(list));
+    if (STATUS_SUCCESS != release_retval)
+    {
+        retval = release_retval;
+    }
+
+done:
+    return retval;
+}
+
+/**
+ * \brief Convert the given list to an array.
+ *
+ * \param value         Pointer to the value pointer to hold the JSON value on
+ *                      success.
+ * \param alloc         The allocator to use for this operation.
+ * \param list          The list for this operation.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+static status
+    vcjson_read_array_from_list(
+        vcjson_value** value, allocator* alloc, slist* list)
+{
+    status retval, release_retval;
+    vcjson_array* array;
+    size_t size;
+    size_t offset = 0;
+    vcjson_value* elemval;
+
+    /* get the size of the list. */
+    size = slist_count(list);
+
+    /* create the array instance. */
+    retval = vcjson_array_create(&array, alloc, size);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto done;
+    }
+
+    /* iterate over the list. */
+    while (slist_count(list) > 0)
+    {
+        /* if somehow the offset matches the array size, exit with an error. */
+        if (offset == size)
+        {
+            retval = ERROR_VCJSON_PARSE_a55efae1_d5fa_4c7d_ba85_f0051194a759;
+            goto cleanup_array;
+        }
+
+        /* pop a value off of the list. */
+        retval = slist_pop(list, (resource**)&elemval);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_array;
+        }
+
+        /* place this value into the array. */
+        retval = vcjson_array_set(array, offset, elemval);
+        if (STATUS_SUCCESS != retval)
+        {
+            goto cleanup_array;
+        }
+
+        /* move to the next array slot. */
+        ++offset;
+    }
+
+    /* convert the array to a value. */
+    retval = vcjson_value_create_from_array(value, alloc, array);
+    if (STATUS_SUCCESS != retval)
+    {
+        goto cleanup_array;
+    }
+
+    /* success. */
+    retval = STATUS_SUCCESS;
+    goto done;
+
+cleanup_array:
+    release_retval = resource_release(vcjson_array_resource_handle(array));
     if (STATUS_SUCCESS != release_retval)
     {
         retval = release_retval;
