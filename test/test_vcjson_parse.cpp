@@ -400,7 +400,7 @@ TEST(vcjson_parse_empty_string_value)
     /* the string value should be empty. */
     size_t length;
     const char* str = vcjson_string_value(stringvalue, &length);
-    TEST_ASSERT(length == 1);
+    TEST_ASSERT(length == 0);
     TEST_EXPECT(!memcmp("", str, length));
 
     /* clean up. */
@@ -441,7 +441,7 @@ TEST(vcjson_parse_simple_string_value)
     /* the string value should be empty. */
     size_t length;
     const char* str = vcjson_string_value(stringvalue, &length);
-    TEST_ASSERT(length - 1 == strlen(EXPECTED_STRING));
+    TEST_ASSERT(length == strlen(EXPECTED_STRING));
     TEST_EXPECT(!memcmp(EXPECTED_STRING, str, length));
 
     /* clean up. */
@@ -482,7 +482,7 @@ TEST(vcjson_parse_simple_escape_string_value)
     /* the string value should be empty. */
     size_t length;
     const char* str = vcjson_string_value(stringvalue, &length);
-    TEST_ASSERT(length - 1 == strlen(EXPECTED_STRING));
+    TEST_ASSERT(length == strlen(EXPECTED_STRING));
     TEST_EXPECT(!memcmp(EXPECTED_STRING, str, length));
 
     /* clean up. */
@@ -494,3 +494,401 @@ TEST(vcjson_parse_simple_escape_string_value)
 
 /* TODO - add unit test for basic \u escape values. */
 /* TODO - add unit test for basic \u escape surrogate pairs. */
+
+/**
+ * Verify that we can parse an empty object.
+ */
+TEST(vcjson_parse_empty_object)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is object. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_OBJECT == vcjson_value_type(value));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an object with a single member.
+ */
+TEST(vcjson_parse_object_with_single_member)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_object* obj = nullptr;
+    vcjson_object_iterator* iter = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({ "foo" : "bar" })";
+    const vcjson_string* key = nullptr;
+    vcjson_value* val = nullptr;
+    const char* keystrval = nullptr;
+    size_t keystrlength = 0U;
+    vcjson_string* valstr = nullptr;
+    const char* valstrstr = nullptr;
+    size_t valstrlength = 0U;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is object. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_OBJECT == vcjson_value_type(value));
+    /* get the object. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_object(&obj, value));
+    /* the object should have one member. */
+    TEST_EXPECT(1 == vcjson_object_elements(obj));
+    /* create an iterator over these members. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_create(&iter, obj));
+    /* get the value of the first member. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_iterator_value(&key, &val, iter));
+    /* the key's string value should be equal to "foo". */
+    keystrval = vcjson_string_value(key, &keystrlength);
+    TEST_ASSERT(keystrlength == strlen("foo"));
+    TEST_EXPECT(!memcmp("foo", keystrval, keystrlength));
+    /* the value should be of type string. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(val));
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&valstr, val));
+    /* the value's string value should be equal to "bar". */
+    valstrstr = vcjson_string_value(valstr, &valstrlength);
+    TEST_ASSERT(valstrlength == strlen("bar"));
+    TEST_EXPECT(!memcmp("bar", valstrstr, valstrlength));
+
+    /* there are no more elements. */
+    TEST_ASSERT(ERROR_VCJSON_ITERATOR_END == vcjson_object_iterator_next(iter));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an object with multiple members.
+ */
+TEST(vcjson_parse_object_with_multiple_members)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_object* obj = nullptr;
+    vcjson_object_iterator* iter = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({ "1" : "foo", "2" : "bar", "3" : "baz" })";
+    const vcjson_string* key = nullptr;
+    vcjson_value* val = nullptr;
+    const char* keystrval = nullptr;
+    size_t keystrlength = 0U;
+    vcjson_string* valstr = nullptr;
+    const char* valstrstr = nullptr;
+    size_t valstrlength = 0U;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is object. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_OBJECT == vcjson_value_type(value));
+    /* get the object. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_object(&obj, value));
+    /* the object should have three members. */
+    TEST_EXPECT(3 == vcjson_object_elements(obj));
+    /* create an iterator over these members. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_create(&iter, obj));
+
+    /* get the value of the first member. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_iterator_value(&key, &val, iter));
+    /* the key's string value should be equal to "1". */
+    keystrval = vcjson_string_value(key, &keystrlength);
+    TEST_ASSERT(keystrlength == strlen("1"));
+    TEST_EXPECT(!memcmp("1", keystrval, keystrlength));
+    /* the value should be of type string. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(val));
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&valstr, val));
+    /* the value's string value should be equal to "foo". */
+    valstrstr = vcjson_string_value(valstr, &valstrlength);
+    TEST_ASSERT(valstrlength == strlen("foo"));
+    TEST_EXPECT(!memcmp("foo", valstrstr, valstrlength));
+
+    /* we can get the next element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_next(iter));
+
+    /* get the value of the second member. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_iterator_value(&key, &val, iter));
+    /* the key's string value should be equal to "2". */
+    keystrval = vcjson_string_value(key, &keystrlength);
+    TEST_ASSERT(keystrlength == strlen("2"));
+    TEST_EXPECT(!memcmp("2", keystrval, keystrlength));
+    /* the value should be of type string. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(val));
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&valstr, val));
+    /* the value's string value should be equal to "bar". */
+    valstrstr = vcjson_string_value(valstr, &valstrlength);
+    TEST_ASSERT(valstrlength == strlen("bar"));
+    TEST_EXPECT(!memcmp("bar", valstrstr, valstrlength));
+
+    /* we can get the next element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_object_iterator_next(iter));
+
+    /* get the value of the third member. */
+    TEST_ASSERT(
+        STATUS_SUCCESS == vcjson_object_iterator_value(&key, &val, iter));
+    /* the key's string value should be equal to "3". */
+    keystrval = vcjson_string_value(key, &keystrlength);
+    TEST_ASSERT(keystrlength == strlen("3"));
+    TEST_EXPECT(!memcmp("3", keystrval, keystrlength));
+    /* the value should be of type string. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_STRING == vcjson_value_type(val));
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_string(&valstr, val));
+    /* the value's string value should be equal to "baz". */
+    valstrstr = vcjson_string_value(valstr, &valstrlength);
+    TEST_ASSERT(valstrlength == strlen("baz"));
+    TEST_EXPECT(!memcmp("baz", valstrstr, valstrlength));
+
+    /* there are no more elements. */
+    TEST_ASSERT(ERROR_VCJSON_ITERATOR_END == vcjson_object_iterator_next(iter));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An empty object missing a closing brace will fail.
+ */
+TEST(bad_object_1)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with a single member and a missing closing brace will fail.
+ */
+TEST(bad_object_2)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"foo":"bar")";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with multiple members and a missing closing brace will fail.
+ */
+TEST(bad_object_3)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1":"foo","2":"bar")";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with multiple members ending in comma and no closing brace will
+ * fail.
+ */
+TEST(bad_object_4)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1":"foo","2":"bar",)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * A member list starting with a comma fails.
+ */
+TEST(bad_object_5)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({,})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_b664370d_72ce_4778_8f68_30c7dc3b14e5
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with multiple members not separated by commas will fail.
+ */
+TEST(bad_object_6)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1":"foo" "2":"bar"})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_1e9e755f_b416_4f9a_95e7_5acd39a09b47
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with a member key and no value will fail.
+ */
+TEST(bad_object_7)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1"})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_be519e92_b2a0_44a4_84f1_3d506fd3f54d
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An object with a member key, a colon, and no value will fail.
+ */
+TEST(bad_object_8)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1":})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
