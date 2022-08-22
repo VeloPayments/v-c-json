@@ -37,8 +37,18 @@ status FN_DECL_MUST_CHECK
 vcjson_string_create(
     vcjson_string** string, RCPR_SYM(allocator)* alloc, const char* value)
 {
+    status retval;
+
     /* get the length of the string. */
     size_t length = strlen(value) + 1;
 
-    return vcjson_string_create_from_raw(string, alloc, value, length);
+    /* create the string. */
+    retval = vcjson_string_create_from_raw(string, alloc, value, length);
+    if (STATUS_SUCCESS == retval)
+    {
+        /* keep the string ASCIIZ, but the ASCIIZ isn't part of it. */
+        (*string)->length -= 1;
+    }
+
+    return retval;
 }

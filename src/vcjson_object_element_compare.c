@@ -26,10 +26,13 @@
 RCPR_SYM(rcpr_comparison_result) vcjson_object_element_compare(
     void* /*context*/, const void* lhs, const void* rhs)
 {
-    const char* l = (const char*)lhs;
-    const char* r = (const char*)rhs;
+    const vcjson_string* l = (const vcjson_string*)lhs;
+    const vcjson_string* r = (const vcjson_string*)rhs;
 
-    int res = strcmp(l, r);
+    size_t min_length = l->length < r->length ? l->length : r->length;
+
+    int res = memcmp(l->value, r->value, min_length);
+
     if (res < 0)
     {
         return RCPR_COMPARE_LT;
@@ -40,6 +43,17 @@ RCPR_SYM(rcpr_comparison_result) vcjson_object_element_compare(
     }
     else
     {
-        return RCPR_COMPARE_EQ;
+        if (l->length < r->length)
+        {
+            return RCPR_COMPARE_LT;
+        }
+        else if (l->length > r->length)
+        {
+            return RCPR_COMPARE_GT;
+        }
+        else
+        {
+            return RCPR_COMPARE_EQ;
+        }
     }
 }
