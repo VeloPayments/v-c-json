@@ -937,6 +937,24 @@ vcjson_parse_string(
     vcjson_value** value, size_t* error_begin, size_t* error_end,
     RCPR_SYM(allocator)* alloc, const char* input);
 
+/**
+ * \brief Emit a JSON value as a string.
+ *
+ * \note On success, this function creates a string that is owned by the caller.
+ * This string is a resource that must be released when no longer in use.
+ * 
+ * \param string        Pointer to the string pointer to hold the JSON string.
+ * \param alloc         The allocator to use for this operation.
+ * \param value         The JSON value to emit.
+ *
+ * \returns a status code indicating success or failure.
+ *      - STATUS_SUCCESS on success.
+ *      - a non-zero error code on failure.
+ */
+status FN_DECL_MUST_CHECK
+vcjson_emit_string(
+    vcjson_string** string, RCPR_SYM(allocator)* alloc, vcjson_value* value);
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */
