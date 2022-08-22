@@ -892,3 +892,310 @@ TEST(bad_object_8)
     TEST_ASSERT(STATUS_SUCCESS
         == resource_release(allocator_resource_handle(alloc)));
 }
+
+/**
+ * An object with a single member and a comma is invalid.
+ */
+TEST(bad_object_9)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"({"1":"foo",})";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_69c86e4f_d981_402d_a4fd_c051b97e821a
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an empty array.
+ */
+TEST(vcjson_parse_empty_array)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_array* array = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([])";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is array. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_ARRAY == vcjson_value_type(value));
+    /* get the array. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_array(&array, value));
+    /* this array is empty. */
+    TEST_ASSERT(0 == vcjson_array_size(array));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an array with one element.
+ */
+TEST(vcjson_parse_array_with_one_element)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_array* array = nullptr;
+    vcjson_value* elemval = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([true])";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is array. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_ARRAY == vcjson_value_type(value));
+    /* get the array. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_array(&array, value));
+    /* this array has 1 element. */
+    TEST_ASSERT(1 == vcjson_array_size(array));
+    /* get the 0th element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_get(&elemval, array, 0));
+    /* the type of this value is boolean. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(elemval));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can parse an array with multiple elements.
+ */
+TEST(vcjson_parse_array_with_multiple_elements)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    vcjson_array* array = nullptr;
+    vcjson_value* elemval = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([true,false,null])";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* verify that the value is set. */
+    TEST_ASSERT(nullptr != value);
+    /* verify that the value type is array. */
+    TEST_EXPECT(VCJSON_VALUE_TYPE_ARRAY == vcjson_value_type(value));
+    /* get the array. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_value_get_array(&array, value));
+    /* this array has 3 element. */
+    TEST_ASSERT(3 == vcjson_array_size(array));
+
+    /* get the 0th element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_get(&elemval, array, 0));
+    /* the type of this value is boolean. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(elemval));
+
+    /* get the 1st element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_get(&elemval, array, 1));
+    /* the type of this value is boolean. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_BOOL == vcjson_value_type(elemval));
+
+    /* get the 2nd element. */
+    TEST_ASSERT(STATUS_SUCCESS == vcjson_array_get(&elemval, array, 2));
+    /* the type of this value is null. */
+    TEST_ASSERT(VCJSON_VALUE_TYPE_NULL == vcjson_value_type(elemval));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(vcjson_value_resource_handle(value)));
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An empty array with no closing bracket is invalid.
+ */
+TEST(bad_array_1)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An array with an element and no closing bracket is invalid.
+ */
+TEST(bad_array_2)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([null)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_da3c5b50_0456_4acd_904b_2a72464e59ae
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An array with an element, a comma, and no closing bracket is invalid.
+ */
+TEST(bad_array_3)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([null,)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An array with a comma and no closing bracket is invalid.
+ */
+TEST(bad_array_4)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([,)";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_4b143e34_8ab5_4a34_b79c_905f66b62511
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An array with a comma and a bracket is invalid.
+ */
+TEST(bad_array_5)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([,])";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_4b143e34_8ab5_4a34_b79c_905f66b62511
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * An array with an element, a comma, and a closing bracket is invalid.
+ */
+TEST(bad_array_6)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    const char* INPUT_STRING = R"([null,])";
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* parsing succeeds. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_e02e6452_eedc_4049_aad0_f79cbf7442a2
+            == vcjson_parse_string(
+                    &value, &error_begin, &error_end, alloc, INPUT_STRING));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
