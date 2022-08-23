@@ -89,6 +89,10 @@ extern const vcjson_bool* VCJSON_FALSE;
 #define ERROR_VCJSON_ITERATOR_END                                       0x6302
 #define ERROR_VCJSON_ITERATOR_BAD                                       0x6303
 #define ERROR_VCJSON_ARRAY_INDEX_OUT_OF_BOUNDS                          0x6304
+#define ERROR_VCJSON_EMIT_BUFFER_OVERRUN                                0x6305
+#define ERROR_VCJSON_EMIT_NUMBER_FORMAT                                 0x6306
+#define ERROR_VCJSON_EMIT_GENERAL_FORMAT                                0x6307
+#define ERROR_VCJSON_EMIT_UNKNOWN_VALUE_TYPE                            0x6308
 #define ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44         0x6380
 #define ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090         0x6381
 #define ERROR_VCJSON_PARSE_b87aa047_46c8_453c_aa3c_bb7c1dd70402         0x6382
@@ -260,6 +264,8 @@ vcjson_object_remove(vcjson_object* obj, const vcjson_string* key);
  */
 status FN_DECL_MUST_CHECK
 vcjson_object_clear(vcjson_object* obj);
+
+/* TODO - use a separate allocator for creating an iterator. */
 
 /**
  * \brief Create an object iterator set to the first key-value pair in this
