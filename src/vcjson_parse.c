@@ -20,47 +20,37 @@ RCPR_IMPORT_slist;
 /* forward decls. */
 static status
     vcjson_read_value(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_true(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_false(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_null(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_string(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_string(
-        vcjson_string** string, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_string** string, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_object(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_object_member(
-        vcjson_object* obj, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_object* obj, vcjson_parser_context* ctx);
 static status
     vcjson_read_value_array(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_read_array_from_list(
         vcjson_value** value, allocator* alloc, slist* list);
 static status
     vcjson_read_value_number(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset);
+        vcjson_value** value, vcjson_parser_context* ctx);
 static status
     vcjson_string_simplify(
         char* output, size_t output_len, size_t* simplified_len,
@@ -93,14 +83,22 @@ vcjson_parse(
     status retval, release_retval;
     int symbol;
     size_t offset;
+    vcjson_parser_context ctx;
 
     /* initialize the positions as 0 to start the parse. */
     *error_begin = *error_end = offset = 0;
 
+    /* initialize the parser context. */
+    ctx.alloc = alloc;
+    ctx.error_begin = error_begin;
+    ctx.error_end = error_end;
+    ctx.input = input;
+    ctx.size = size;
+    ctx.offset = &offset;
+    ctx.recursion_depth = 0;
+
     /* read a value. */
-    retval =
-        vcjson_read_value(
-            value, error_begin, error_end, alloc, input, size, &offset);
+    retval = vcjson_read_value(value, &ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -142,14 +140,7 @@ done:
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -157,14 +148,12 @@ done:
  */
 static status
     vcjson_read_value_true(
-        vcjson_value** value, size_t* /*error_begin*/, size_t* /*error_end*/,
-        allocator* alloc, const char* /*input*/, size_t /*size*/,
-        size_t* /*offset*/)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval;
 
     /* create the true instance. */
-    retval = vcjson_value_create_from_true(value, alloc);
+    retval = vcjson_value_create_from_true(value, ctx->alloc);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -179,14 +168,7 @@ static status
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -194,14 +176,12 @@ static status
  */
 static status
     vcjson_read_value_false(
-        vcjson_value** value, size_t* /*error_begin*/, size_t* /*error_end*/,
-        allocator* alloc, const char* /*input*/, size_t /*size*/,
-        size_t* /*offset*/)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval;
 
     /* create the false instance. */
-    retval = vcjson_value_create_from_false(value, alloc);
+    retval = vcjson_value_create_from_false(value, ctx->alloc);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -216,14 +196,7 @@ static status
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -231,14 +204,12 @@ static status
  */
 static status
     vcjson_read_value_null(
-        vcjson_value** value, size_t* /*error_begin*/, size_t* /*error_end*/,
-        allocator* alloc, const char* /*input*/, size_t /*size*/,
-        size_t* /*offset*/)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval;
 
     /* create the null instance. */
-    retval = vcjson_value_create_from_null(value, alloc);
+    retval = vcjson_value_create_from_null(value, ctx->alloc);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -253,14 +224,7 @@ static status
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -268,9 +232,7 @@ static status
  */
 static status
     vcjson_read_value_number(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t /*size*/,
-        size_t* /*offset*/)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     vcjson_number* number;
@@ -278,31 +240,31 @@ static status
     size_t buffer_size;
 
     /* compute the working string size. */
-    buffer_size = (*error_end + 1) - *error_begin;
+    buffer_size = (*ctx->error_end + 1) - *ctx->error_begin;
 
     /* create a working buffer. */
-    retval = allocator_allocate(alloc, (void**)&buffer, buffer_size + 1);
+    retval = allocator_allocate(ctx->alloc, (void**)&buffer, buffer_size + 1);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
     }
 
     /* copy the string value. */
-    memcpy(buffer, input + *error_begin, buffer_size);
+    memcpy(buffer, ctx->input + *ctx->error_begin, buffer_size);
     buffer[buffer_size] = 0;
 
     /* convert this to a number. */
     double numberval = atof(buffer);
 
     /* create a JSON number. */
-    retval = vcjson_number_create(&number, alloc, numberval);
+    retval = vcjson_number_create(&number, ctx->alloc, numberval);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_buffer;
     }
 
     /* create a JSON value. */
-    retval = vcjson_value_create_from_number(value, alloc, number);
+    retval = vcjson_value_create_from_number(value, ctx->alloc, number);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_number;
@@ -321,7 +283,7 @@ cleanup_number:
 
 cleanup_buffer:
     memset(buffer, 0, buffer_size);
-    release_retval = allocator_reclaim(alloc, buffer);
+    release_retval = allocator_reclaim(ctx->alloc, buffer);
     if (STATUS_SUCCESS != release_retval)
     {
         retval = release_retval;
@@ -336,14 +298,7 @@ done:
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -351,23 +306,20 @@ done:
  */
 static status
     vcjson_read_value_string(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     vcjson_string* string_value;
 
     /* read the string. */
-    retval =
-        vcjson_read_string(
-            &string_value, error_begin, error_end, alloc, input, size, offset);
+    retval = vcjson_read_string(&string_value, ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
     }
 
     /* create a value from this string value. */
-    retval = vcjson_value_create_from_string(value, alloc, string_value);
+    retval = vcjson_value_create_from_string(value, ctx->alloc, string_value);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_string_value;
@@ -394,14 +346,7 @@ done:
  *
  * \param string        Pointer to the string pointer to hold the JSON string on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -409,19 +354,17 @@ done:
  */
 static status
     vcjson_read_string(
-        vcjson_string** string, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t /*size*/,
-        size_t* /*offset*/)
+        vcjson_string** string, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     char* buffer;
     size_t buffer_size;
 
     /* compute the maximum string size. */
-    buffer_size = (*error_end + 1) - *error_begin - 2;
+    buffer_size = (*ctx->error_end + 1) - *ctx->error_begin - 2;
 
     /* create a working buffer. */
-    retval = allocator_allocate(alloc, (void**)&buffer, buffer_size + 1);
+    retval = allocator_allocate(ctx->alloc, (void**)&buffer, buffer_size + 1);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -431,8 +374,8 @@ static status
     size_t length;
     retval =
         vcjson_string_simplify(
-            buffer, buffer_size + 1, &length, input + *error_begin + 1,
-            buffer_size);
+            buffer, buffer_size + 1, &length,
+            ctx->input + *ctx->error_begin + 1, buffer_size);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_buffer;
@@ -440,7 +383,7 @@ static status
 
     /* create a string from this value. */
     retval =
-        vcjson_string_create_from_raw(string, alloc, buffer, length);
+        vcjson_string_create_from_raw(string, ctx->alloc, buffer, length);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_buffer;
@@ -452,7 +395,7 @@ static status
 
 cleanup_buffer:
     memset(buffer, 0, buffer_size);
-    release_retval = allocator_reclaim(alloc, buffer);
+    release_retval = allocator_reclaim(ctx->alloc, buffer);
     if (STATUS_SUCCESS != release_retval)
     {
         retval = release_retval;
@@ -467,13 +410,7 @@ done:
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
+ * \param ctx           The context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -481,16 +418,26 @@ done:
  */
 static status
     vcjson_read_value(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval;
     int symbol;
 
+    /* check the recursion depth. */
+    if (ctx->recursion_depth >= VCJSON_PARSER_MAXIMUM_RECURSION_DEPTH)
+    {
+        return ERROR_VCJSON_PARSE_RECURSION_DEPTH_EXCEEDED;
+    }
+    else
+    {
+        ++ctx->recursion_depth;
+    }
+
     /* scan for a symbol. */
     retval =
         vcjson_scan_symbol(
-            &symbol, error_begin, error_end, input, size, offset);
+            &symbol, ctx->error_begin, ctx->error_end, ctx->input, ctx->size,
+            ctx->offset);
     if (STATUS_SUCCESS != retval)
     {
         return retval;
@@ -506,44 +453,37 @@ static status
         /* read a true literal. */
         case VCJSON_LEXER_SYMBOL_TRUE:
             return
-                vcjson_read_value_true(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_true(value, ctx);
 
         /* read a false literal. */
         case VCJSON_LEXER_SYMBOL_FALSE:
             return
-                vcjson_read_value_false(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_false(value, ctx);
 
         /* read a null literal. */
         case VCJSON_LEXER_SYMBOL_NULL:
             return
-                vcjson_read_value_null(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_null(value, ctx);
 
         /* read a number literal. */
         case VCJSON_LEXER_SYMBOL_NUMBER:
             return
-                vcjson_read_value_number(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_number(value, ctx);
 
         /* read a string literal. */
         case VCJSON_LEXER_SYMBOL_STRING:
             return
-                vcjson_read_value_string(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_string(value, ctx);
 
         /* read an object. */
         case VCJSON_LEXER_PRIM_LEFT_BRACE:
             return
-                vcjson_read_value_object(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_object(value, ctx);
 
         /* read an array. */
         case VCJSON_LEXER_PRIM_LEFT_BRACKET:
             return
-                vcjson_read_value_array(
-                    value, error_begin, error_end, alloc, input, size, offset);
+                vcjson_read_value_array(value, ctx);
 
         /* an unknown symbol was encountered. */
         default:
@@ -677,14 +617,7 @@ static status
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -692,8 +625,7 @@ static status
  */
 static status
     vcjson_read_value_object(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     int symbol;
@@ -701,7 +633,7 @@ static status
     bool expecting_comma = false;
 
     /* create an empty object instance. */
-    retval = vcjson_object_create(&obj, alloc);
+    retval = vcjson_object_create(&obj, ctx->alloc);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -713,7 +645,8 @@ static status
         /* scan the next symbol. */
         retval =
             vcjson_scan_symbol(
-                &symbol, error_begin, error_end, input, size, offset);
+                &symbol, ctx->error_begin, ctx->error_end, ctx->input,
+                ctx->size, ctx->offset);
         if (STATUS_SUCCESS != retval)
         {
             goto cleanup_obj;
@@ -728,7 +661,8 @@ static status
                  * comma. */
                 if (vcjson_object_elements(obj) == 0 || expecting_comma)
                 {
-                    retval = vcjson_value_create_from_object(value, alloc, obj);
+                    retval =
+                        vcjson_value_create_from_object(value, ctx->alloc, obj);
                     if (STATUS_SUCCESS != retval)
                     {
                         goto cleanup_obj;
@@ -757,10 +691,7 @@ static status
                 else
                 {
                     /* read the object member. */
-                    retval =
-                        vcjson_read_value_object_member(
-                            obj, error_begin, error_end, alloc, input, size,
-                            offset);
+                    retval = vcjson_read_value_object_member(obj, ctx);
                     if (STATUS_SUCCESS != retval)
                     {
                         goto cleanup_obj;
@@ -809,22 +740,14 @@ done:
  *
  * \param obj           Pointer to the object to update with this key-value
  *                      pair.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
  *      - a non-zero error code on failure.
  */
 static status vcjson_read_value_object_member(
-    vcjson_object* obj, size_t* error_begin, size_t* error_end,
-    allocator* alloc, const char* input, size_t size, size_t* offset)
+    vcjson_object* obj, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     int symbol;
@@ -832,9 +755,7 @@ static status vcjson_read_value_object_member(
     vcjson_value* elemvalue;
 
     /* read the key string. */
-    retval =
-        vcjson_read_string(
-            &elemkey, error_begin, error_end, alloc, input, size, offset);
+    retval = vcjson_read_string(&elemkey, ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -843,7 +764,8 @@ static status vcjson_read_value_object_member(
     /* scan the next symbol. */
     retval =
         vcjson_scan_symbol(
-            &symbol, error_begin, error_end, input, size, offset);
+            &symbol, ctx->error_begin, ctx->error_end, ctx->input, ctx->size,
+            ctx->offset);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_elemkey;
@@ -857,9 +779,7 @@ static status vcjson_read_value_object_member(
     }
 
     /* read a value. */
-    retval =
-        vcjson_read_value(
-            &elemvalue, error_begin, error_end, alloc, input, size, offset);
+    retval = vcjson_read_value(&elemvalue, ctx);
     if (STATUS_SUCCESS != retval)
     {
         goto cleanup_elemkey;
@@ -899,14 +819,7 @@ done:
  *
  * \param value         Pointer to the value pointer to hold the JSON value on
  *                      success.
- * \param error_begin   Pointer to receive the start of an error location on
- *                      failure.
- * \param error_end     Pointer to receive the end of an error location on
- *                      failure.
- * \param alloc         The allocator to use for this operation.
- * \param input         The input UTF-8 character buffer.
- * \param size          The size of this buffer.
- * \param offset        The current offset in the input buffer.
+ * \param ctx           The parser context for this operation.
  *
  * \returns a status code indicating success or failure.
  *      - STATUS_SUCCESS on success.
@@ -914,8 +827,7 @@ done:
  */
 static status
     vcjson_read_value_array(
-        vcjson_value** value, size_t* error_begin, size_t* error_end,
-        allocator* alloc, const char* input, size_t size, size_t* offset)
+        vcjson_value** value, vcjson_parser_context* ctx)
 {
     status retval, release_retval;
     int symbol;
@@ -925,7 +837,7 @@ static status
     size_t primpos;
 
     /* create an slist instance for holding array values. */
-    retval = slist_create(&list, alloc);
+    retval = slist_create(&list, ctx->alloc);
     if (STATUS_SUCCESS != retval)
     {
         goto done;
@@ -936,7 +848,8 @@ static status
     {
         /* peek at a primitive. */
         retval =
-            vcjson_scan_primitive(&symbol, &primpos, input, size, offset, true);
+            vcjson_scan_primitive(
+                &symbol, &primpos, ctx->input, ctx->size, ctx->offset, true);
         if (STATUS_SUCCESS != retval)
         {
             goto cleanup_list;
@@ -950,8 +863,8 @@ static status
                 {
                     retval =
                         vcjson_scan_symbol(
-                            &symbol, error_begin, error_end, input, size,
-                            offset);
+                            &symbol, ctx->error_begin, ctx->error_end,
+                            ctx->input, ctx->size, ctx->offset);
                     if (STATUS_SUCCESS != retval)
                     {
                         goto cleanup_list;
@@ -978,7 +891,8 @@ static status
             case VCJSON_LEXER_PRIM_RIGHT_BRACKET:
                 retval =
                     vcjson_scan_symbol(
-                        &symbol, error_begin, error_end, input, size, offset);
+                        &symbol, ctx->error_begin, ctx->error_end, ctx->input,
+                        ctx->size, ctx->offset);
                 if (STATUS_SUCCESS != retval)
                 {
                     goto cleanup_list;
@@ -997,7 +911,8 @@ static status
                 if (slist_count(list) == 0 || expecting_comma)
                 {
                     /* create an array value from this list. */
-                    retval = vcjson_read_array_from_list(value, alloc, list);
+                    retval =
+                        vcjson_read_array_from_list(value, ctx->alloc, list);
                     if (STATUS_SUCCESS != retval)
                     {
                         goto cleanup_list;
@@ -1024,14 +939,17 @@ static status
                 else
                 {
                     /* try to read a value from input. */
-                    retval =
-                        vcjson_read_value(
-                            &elemval, error_begin, error_end, alloc, input,
-                            size, offset);
+                    retval = vcjson_read_value(&elemval, ctx);
                     if (STATUS_SUCCESS != retval)
                     {
+                        if (
+                            ERROR_VCJSON_PARSE_RECURSION_DEPTH_EXCEEDED
+                                != retval)
+                        {
                         retval =
                         ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a;
+                        }
+
                         goto cleanup_list;
                     }
 

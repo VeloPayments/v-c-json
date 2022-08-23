@@ -89,6 +89,22 @@ struct vcjson_array
     size_t elems;
 };
 
+/**
+ * \brief Parser context for the parser.
+ */
+typedef struct vcjson_parser_context vcjson_parser_context;
+
+struct vcjson_parser_context
+{
+    RCPR_SYM(allocator)* alloc;
+    size_t* error_begin;
+    size_t* error_end;
+    const char* input;
+    size_t size;
+    size_t* offset;
+    size_t recursion_depth;
+};
+
 typedef status (*vcjson_emit_fn)(void* context, const void* val, size_t size);
 
 extern vcjson_null VCJSON_NULL_IMPL;
