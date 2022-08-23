@@ -440,7 +440,7 @@ static status
             ctx->offset);
     if (STATUS_SUCCESS != retval)
     {
-        return retval;
+        goto done;
     }
 
     /* decode the symbol received. */
@@ -448,47 +448,54 @@ static status
     {
         /* we need a valid JSON value for this read to be successful. */
         case VCJSON_LEXER_SYMBOL_SPECIAL_EOF:
-            return ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44;
+            retval = ERROR_VCJSON_PARSE_b369f991_4e11_4210_9076_ddc799d5bf44;
+            goto done;
 
         /* read a true literal. */
         case VCJSON_LEXER_SYMBOL_TRUE:
-            return
-                vcjson_read_value_true(value, ctx);
+            retval = vcjson_read_value_true(value, ctx);
+            goto done;
 
         /* read a false literal. */
         case VCJSON_LEXER_SYMBOL_FALSE:
-            return
-                vcjson_read_value_false(value, ctx);
+            retval = vcjson_read_value_false(value, ctx);
+            goto done;
 
         /* read a null literal. */
         case VCJSON_LEXER_SYMBOL_NULL:
-            return
-                vcjson_read_value_null(value, ctx);
+            retval = vcjson_read_value_null(value, ctx);
+            goto done;
 
         /* read a number literal. */
         case VCJSON_LEXER_SYMBOL_NUMBER:
-            return
-                vcjson_read_value_number(value, ctx);
+            retval = vcjson_read_value_number(value, ctx);
+            goto done;
 
         /* read a string literal. */
         case VCJSON_LEXER_SYMBOL_STRING:
-            return
-                vcjson_read_value_string(value, ctx);
+            retval = vcjson_read_value_string(value, ctx);
+            goto done;
 
         /* read an object. */
         case VCJSON_LEXER_PRIM_LEFT_BRACE:
-            return
-                vcjson_read_value_object(value, ctx);
+            retval = vcjson_read_value_object(value, ctx);
+            goto done;
 
         /* read an array. */
         case VCJSON_LEXER_PRIM_LEFT_BRACKET:
-            return
-                vcjson_read_value_array(value, ctx);
+            retval = vcjson_read_value_array(value, ctx);
+            goto done;
 
         /* an unknown symbol was encountered. */
         default:
-            return ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090;
+            retval = ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090;
+            goto done;
     }
+
+done:
+    --ctx->recursion_depth;
+
+    return retval;
 }
 
 /**
