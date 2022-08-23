@@ -89,6 +89,8 @@ struct vcjson_array
     size_t elems;
 };
 
+typedef status (*vcjson_emit_fn)(void* context, const void* val, size_t size);
+
 extern vcjson_null VCJSON_NULL_IMPL;
 extern vcjson_bool VCJSON_BOOL_TRUE_IMPL;
 extern vcjson_bool VCJSON_BOOL_FALSE_IMPL;

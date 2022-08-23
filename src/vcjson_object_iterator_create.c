@@ -43,6 +43,15 @@ vcjson_object_iterator_create(
 {
     status retval;
     vcjson_object_iterator* tmp = NULL;
+    rbtree_node* nil = rbtree_nil_node(obj->elements);
+    rbtree_node* root = rbtree_root_node(obj->elements);
+
+    /* if the root node is nil, then the iterator cannot be initialized. */
+    if (nil == root)
+    {
+        retval = ERROR_VCJSON_ITERATOR_END;
+        goto done;
+    }
 
     /* allocate memory for this iterator instance. */
     retval = allocator_allocate(obj->alloc, (void**)&tmp, sizeof(*tmp));
@@ -60,9 +69,8 @@ vcjson_object_iterator_create(
     /* set initial values. */
     tmp->alloc = obj->alloc;
     tmp->tree = obj->elements;
-    tmp->nil = rbtree_nil_node(obj->elements);
-    tmp->curr =
-        rbtree_minimum_node(obj->elements, rbtree_root_node(obj->elements));
+    tmp->nil = nil;
+    tmp->curr = rbtree_minimum_node(obj->elements, root);
 
     /* success. */
     retval = STATUS_SUCCESS;
