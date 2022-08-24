@@ -706,7 +706,7 @@ TEST(bad_object_1)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
             == vcjson_parse_string(
@@ -731,7 +731,7 @@ TEST(bad_object_2)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
             == vcjson_parse_string(
@@ -756,7 +756,7 @@ TEST(bad_object_3)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
             == vcjson_parse_string(
@@ -782,7 +782,7 @@ TEST(bad_object_4)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_ffa4f503_8429_49f4_bbf2_8a91276d234c
             == vcjson_parse_string(
@@ -807,7 +807,7 @@ TEST(bad_object_5)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_b664370d_72ce_4778_8f68_30c7dc3b14e5
             == vcjson_parse_string(
@@ -832,7 +832,7 @@ TEST(bad_object_6)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_1e9e755f_b416_4f9a_95e7_5acd39a09b47
             == vcjson_parse_string(
@@ -857,7 +857,7 @@ TEST(bad_object_7)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_be519e92_b2a0_44a4_84f1_3d506fd3f54d
             == vcjson_parse_string(
@@ -882,7 +882,7 @@ TEST(bad_object_8)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_fb48555e_2ed9_414a_841e_0d5b39b52090
             == vcjson_parse_string(
@@ -907,7 +907,7 @@ TEST(bad_object_9)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_69c86e4f_d981_402d_a4fd_c051b97e821a
             == vcjson_parse_string(
@@ -1064,7 +1064,7 @@ TEST(bad_array_1)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a
             == vcjson_parse_string(
@@ -1089,7 +1089,7 @@ TEST(bad_array_2)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_da3c5b50_0456_4acd_904b_2a72464e59ae
             == vcjson_parse_string(
@@ -1114,7 +1114,7 @@ TEST(bad_array_3)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_c207ee84_a90b_4d01_9314_a769a460819a
             == vcjson_parse_string(
@@ -1139,7 +1139,7 @@ TEST(bad_array_4)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_4b143e34_8ab5_4a34_b79c_905f66b62511
             == vcjson_parse_string(
@@ -1164,7 +1164,7 @@ TEST(bad_array_5)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_4b143e34_8ab5_4a34_b79c_905f66b62511
             == vcjson_parse_string(
@@ -1189,13 +1189,48 @@ TEST(bad_array_6)
     /* create a malloc allocator. */
     TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
 
-    /* parsing succeeds. */
+    /* parsing fails. */
     TEST_ASSERT(
         ERROR_VCJSON_PARSE_e02e6452_eedc_4049_aad0_f79cbf7442a2
             == vcjson_parse_string(
                     &value, &error_begin, &error_end, alloc, INPUT_STRING));
 
     /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS
+        == resource_release(allocator_resource_handle(alloc)));
+}
+
+/**
+ * Verify that we can't be attacked with a recursion attack. */
+TEST(recursion_overflow)
+{
+    allocator* alloc = nullptr;
+    vcjson_value* value = nullptr;
+    size_t error_begin = 0xffff;
+    size_t error_end = 0xffff;
+    char* input;
+    size_t input_size = 10UL * 1024UL * 1024UL;
+
+    /* create a malloc allocator. */
+    TEST_ASSERT(STATUS_SUCCESS == malloc_allocator_create(&alloc));
+
+    /* allocate a large input string. */
+    TEST_ASSERT(
+        STATUS_SUCCESS
+            == allocator_allocate(alloc, (void**)&input, input_size));
+
+    /* fill this string with open braces. */
+    memset(input, '[', input_size - 1);
+
+    /* parsing fails. */
+    TEST_ASSERT(
+        ERROR_VCJSON_PARSE_RECURSION_DEPTH_EXCEEDED
+            == vcjson_parse(
+                    &value, &error_begin, &error_end, alloc, input,
+                    input_size));
+
+    /* clean up. */
+    TEST_ASSERT(STATUS_SUCCESS == allocator_reclaim(alloc, input));
     TEST_ASSERT(STATUS_SUCCESS
         == resource_release(allocator_resource_handle(alloc)));
 }
